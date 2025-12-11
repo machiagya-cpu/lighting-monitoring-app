@@ -1,5 +1,5 @@
 /**
-* Authentication and Session Management
+* Authentication and Session Management - FIXED VERSION
 */
 
 class AuthManager {
@@ -52,7 +52,10 @@ password: password
 if (response.status === 'success') {
 this.setSession(response.data);
 this.showAlert('Login successful!', 'success');
+// Use setTimeout to ensure DOM updates are complete
+setTimeout(() => {
 this.redirectToApp();
+}, 100);
 } else {
 this.showAlert(response.message || 'Login failed', 'error');
 }
@@ -182,18 +185,66 @@ return true;
 }
 
 redirectToApp() {
-document.getElementById('login-section').style.display = 'none';
-document.getElementById('main-app').style.display = 'block';
+console.log('AuthManager: redirectToApp called');
 
-// Initialize app with user data
-if (window.appManager) {
-window.appManager.initializeWithUser(this.getCurrentUser());
+// Hide login section
+const loginSection = document.getElementById('login-section');
+if (loginSection) {
+loginSection.style.display = 'none';
+} else {
+console.error('AuthManager: login-section element not found!');
 }
+
+// Show main app
+const mainApp = document.getElementById('main-app');
+if (mainApp) {
+mainApp.style.display = 'block';
+} else {
+console.error('AuthManager: main-app element not found!');
+}
+
+// Initialize app with user data - with retry mechanism
+this.initializeAppWithRetry();
+}
+
+initializeAppWithRetry() {
+const maxRetries = 10;
+let retries = 0;
+
+const tryInitialize = () => {
+if (window.appManager) {
+console.log('AuthManager: appManager found, initializing...');
+window.appManager.initializeWithUser(this.getCurrentUser());
+return true;
+} else if (retries < maxRetries) {
+retries++;
+console.log(`AuthManager: appManager not ready, retry ${retries}/${maxRetries}`);
+setTimeout(tryInitialize, 100);
+return false;
+} else {
+console.error('AuthManager: Failed to initialize appManager after maximum retries');
+this.showAlert('App initialization failed. Please refresh the page.', 'error');
+return false;
+}
+};
+
+tryInitialize();
 }
 
 redirectToLogin() {
-document.getElementById('login-section').style.display = 'flex';
-document.getElementById('main-app').style.display = 'none';
+console.log('AuthManager: redirectToLogin called');
+
+// Show login section
+const loginSection = document.getElementById('login-section');
+if (loginSection) {
+loginSection.style.display = 'flex';
+}
+
+// Hide main app
+const mainApp = document.getElementById('main-app');
+if (mainApp) {
+mainApp.style.display = 'none';
+}
 
 // Clear form
 const loginForm = document.getElementById('login-form');
