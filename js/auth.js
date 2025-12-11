@@ -1,10 +1,10 @@
 /**
-* Authentication and Session Management - COMPREHENSIVE FIX
+* Authentication and Session Management - FIXED VERSION
 */
 
 class AuthManager {
 constructor() {
-this.API_ENDPOINT = 'https://script.google.com/macros/s/AKfycbx3rWunag2r2pAxGlCqWYoqo85oz15bPEJHPHRs8YKmIQVWV8FB4atITNqGH7XfZFQA/exec';
+this.API_ENDPOINT = 'https://script.google.com/macros/s/AKfycbx_oUdtIKJSA639p0pHq4oqIbaDyiBf_kajHpK-zWgRXvojQxj73jHPethx0yRDEZvr/exec';
 this.SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes
 this.sessionCheckInterval = null;
 this.init();
@@ -347,6 +347,21 @@ alert.remove();
 }, 5000);
 }
 }
+
+// FIXED: Add global closeModal function
+function closeModal(modalId) {
+console.log('Global closeModal called for:', modalId);
+const modal = document.getElementById(modalId);
+if (modal) {
+modal.style.display = 'none';
+console.log('Modal closed successfully');
+} else {
+console.error('Modal not found:', modalId);
+}
+}
+
+// Make closeModal globally available
+window.closeModal = closeModal;
 
 // Initialize auth manager when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
