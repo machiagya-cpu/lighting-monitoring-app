@@ -1,10 +1,10 @@
 /**
-* Main Application Logic
+* Main Application Logic - FIXED VERSION
 */
 
 class AppManager {
 constructor() {
-this.API_ENDPOINT = 'https://script.google.com/macros/s/AKfycbx3rWunag2r2pAxGlCqWYoqo85oz15bPEJHPHRs8YKmIQVWV8FB4atITNqGH7XfZFQA/exec';
+this.API_ENDPOINT = 'https://script.google.com/macros/s/AKfycbx_oUdtIKJSA639p0pHq4oqIbaDyiBf_kajHpK-zWgRXvojQxj73jHPethx0yRDEZvr/exec';
 this.currentUser = null;
 this.currentData = [];
 this.currentFilters = {};
@@ -50,7 +50,7 @@ if (clearFiltersBtn) {
 clearFiltersBtn.addEventListener('click', () => this.clearFilters());
 }
 
-// Modal close
+// Modal close - FIXED: Use proper event listeners instead of onclick
 const closeButtons = document.querySelectorAll('.close');
 closeButtons.forEach(btn => {
 btn.addEventListener('click', (e) => {
@@ -93,21 +93,29 @@ async loadDashboard() {
 try {
 this.showLoading(true);
 
+console.log('AppManager: Loading dashboard...');
+
 const response = await this.makeAPICall('POST', {
 action: 'getData',
 filters: this.currentFilters
 });
 
-if (response.status === 'success') {
-this.currentData = response.data;
+console.log('AppManager: Dashboard response:', response);
+
+// FIXED: Check response structure properly
+if (response.success === true) {
+this.currentData = response.data || [];
+console.log('AppManager: Data loaded successfully, count:', this.currentData.length);
 this.updateDashboard();
 this.updateDataTable();
 this.populateFilters();
+console.log('AppManager: Dashboard updated successfully');
 } else {
+console.error('AppManager: Failed to load data:', response.message);
 window.authManager.showAlert(response.message || 'Failed to load data', 'error');
 }
 } catch (error) {
-console.error('Dashboard load error:', error);
+console.error('AppManager: Dashboard load error:', error);
 window.authManager.showAlert('Failed to load dashboard: ' + error.message, 'error');
 } finally {
 this.showLoading(false);
@@ -115,12 +123,15 @@ this.showLoading(false);
 }
 
 updateDashboard() {
+console.log('AppManager: Updating dashboard...');
 const stats = this.calculateStats();
 
 document.getElementById('total-fittings').textContent = stats.totalFittings;
 document.getElementById('completed-installations').textContent = stats.completed;
 document.getElementById('in-progress').textContent = stats.inProgress;
 document.getElementById('total-wattage').textContent = stats.totalWattage;
+
+console.log('AppManager: Dashboard updated with stats:', stats);
 }
 
 calculateStats() {
@@ -140,24 +151,41 @@ totalWattage
 }
 
 updateDataTable() {
+console.log('AppManager: Updating data table...');
 const tbody = document.getElementById('data-table-body');
-if (!tbody) return;
+if (!tbody) {
+console.error('AppManager: Data table body not found');
+return;
+}
 
 tbody.innerHTML = '';
+
+if (this.currentData.length === 0) {
+console.log('AppManager: No data to display');
+const emptyRow = document.createElement('tr');
+emptyRow.innerHTML = `
+<td colspan="11" style="text-align: center; padding: 2rem; color: #6b7280;">
+<i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i>
+No data available. Click "Add New Data" to get started.
+</td>
+`;
+tbody.appendChild(emptyRow);
+return;
+}
 
 this.currentData.forEach(item => {
 const row = document.createElement('tr');
 row.innerHTML = `
-<td>${this.escapeHtml(item.floor || '')}</td>
+<td>${this.escapeHtml(item.floor || item.lantai || '')}</td>
 <td>${this.escapeHtml(item.area || '')}</td>
 <td>${this.escapeHtml(item.room || '')}</td>
-<td>${this.escapeHtml(item.fitting_ref || '')}</td>
+<td>${this.escapeHtml(item.fitting_ref || item.ref_fitting || '')}</td>
 <td>${this.escapeHtml(item.type || '')}</td>
 <td>${item.qty || 0}</td>
 <td>${item.watt || 0}</td>
 <td><span class="status-badge status-${(item.status || '').toLowerCase().replace(' ', '-')}">${item.status || ''}</span></td>
-<td>${this.formatDate(item.order_date)}</td>
-<td>${this.formatDate(item.completion_date)}</td>
+<td>${this.formatDate(item.order_date || item.tgl_order)}</td>
+<td>${this.formatDate(item.completion_date || item.tgl_selesai)}</td>
 <td class="actions">
 <button class="btn btn-sm btn-secondary" onclick="window.appManager.editData('${item.id}')" title="Edit">
 <i class="fas fa-edit"></i>
@@ -169,16 +197,18 @@ row.innerHTML = `
 `;
 tbody.appendChild(row);
 });
+
+console.log('AppManager: Data table updated with', this.currentData.length, 'rows');
 }
 
 populateFilters() {
 const floorFilter = document.getElementById('floor-filter');
 if (!floorFilter) return;
 
-const floors = [...new Set(this.currentData.map(item => item.floor).filter(Boolean))];
+const floors = [...new Set(this.currentData.map(item => item.floor || item.lantai).filter(Boolean))];
 
 // Clear existing options except "All"
-floorFilter.innerHTML = '<option value="">Semua Lantai</option>';
+floorFilter.innerHTML = '<option value="">All Floors</option>';
 
 floors.forEach(floor => {
 const option = document.createElement('option');
@@ -207,55 +237,65 @@ this.loadDashboard();
 }
 
 showAddDataModal() {
-document.getElementById('modal-title').textContent = 'Tambah Data';
+console.log('AppManager: Showing add data modal');
+document.getElementById('modal-title').textContent = 'Add New Data';
 document.getElementById('data-form').reset();
 document.getElementById('record-id').value = '';
 this.showModal('data-modal');
 }
 
 editData(id) {
-const item = this.currentData.find(data => data.id === id);
-if (!item) return;
+const item = this.currentData.find(data => data.id == id); // Use == for type coercion
+if (!item) {
+console.error('AppManager: Item not found for edit:', id);
+window.authManager.showAlert('Item not found', 'error');
+return;
+}
 
+console.log('AppManager: Editing item:', item);
 document.getElementById('modal-title').textContent = 'Edit Data';
 document.getElementById('record-id').value = item.id;
 
 // Populate form fields
-document.getElementById('floor').value = item.floor || '';
+document.getElementById('floor').value = item.floor || item.lantai || '';
 document.getElementById('area').value = item.area || '';
 document.getElementById('room').value = item.room || '';
-document.getElementById('fitting_ref').value = item.fitting_ref || '';
+document.getElementById('fitting_ref').value = item.fitting_ref || item.ref_fitting || '';
 document.getElementById('type').value = item.type || '';
 document.getElementById('qty').value = item.qty || '';
 document.getElementById('watt').value = item.watt || '';
 document.getElementById('status').value = item.status || 'Pending';
-document.getElementById('order_date').value = this.formatDateForInput(item.order_date);
-document.getElementById('completion_date').value = this.formatDateForInput(item.completion_date);
+document.getElementById('order_date').value = this.formatDateForInput(item.order_date || item.tgl_order);
+document.getElementById('completion_date').value = this.formatDateForInput(item.completion_date || item.tgl_selesai);
 
 this.showModal('data-modal');
 }
 
 async deleteData(id) {
-if (!confirm('Apakah Anda yakin ingin menghapus data ini?')) {
+if (!confirm('Are you sure you want to delete this data?')) {
 return;
 }
 
 try {
 this.showLoading(true);
 
+console.log('AppManager: Deleting data with ID:', id);
+
 const response = await this.makeAPICall('POST', {
 action: 'deleteData',
 record_id: id
 });
 
-if (response.status === 'success') {
-window.authManager.showAlert('Data berhasil dihapus', 'success');
+console.log('AppManager: Delete response:', response);
+
+if (response.success === true) {
+window.authManager.showAlert('Data deleted successfully', 'success');
 this.loadDashboard();
 } else {
 window.authManager.showAlert(response.message || 'Failed to delete data', 'error');
 }
 } catch (error) {
-console.error('Delete error:', error);
+console.error('AppManager: Delete error:', error);
 window.authManager.showAlert('Failed to delete data: ' + error.message, 'error');
 } finally {
 this.showLoading(false);
@@ -268,11 +308,13 @@ event.preventDefault();
 const formData = new FormData(event.target);
 const data = Object.fromEntries(formData.entries());
 
+console.log('AppManager: Form data submitted:', data);
+
 // Validate required fields
 const requiredFields = ['floor', 'fitting_ref', 'qty', 'watt'];
 for (let field of requiredFields) {
 if (!data[field] || data[field].trim() === '') {
-window.authManager.showAlert(`Field '${field}' harus diisi`, 'error');
+window.authManager.showAlert(`Field '${field}' is required`, 'error');
 return;
 }
 }
@@ -285,13 +327,17 @@ delete data.record_id;
 try {
 this.showLoading(true);
 
+console.log('AppManager: Submitting data with action:', action);
+
 const response = await this.makeAPICall('POST', {
 action: action,
 data: data
 });
 
-if (response.status === 'success') {
-const message = data.record_id ? 'Data berhasil diupdate' : 'Data berhasil ditambahkan';
+console.log('AppManager: Submit response:', response);
+
+if (response.success === true) {
+const message = data.record_id ? 'Data updated successfully' : 'Data added successfully';
 window.authManager.showAlert(message, 'success');
 this.closeModal('data-modal');
 this.loadDashboard();
@@ -299,7 +345,7 @@ this.loadDashboard();
 window.authManager.showAlert(response.message || 'Failed to save data', 'error');
 }
 } catch (error) {
-console.error('Save error:', error);
+console.error('AppManager: Save error:', error);
 window.authManager.showAlert('Failed to save data: ' + error.message, 'error');
 } finally {
 this.showLoading(false);
@@ -310,23 +356,22 @@ async exportToPDF() {
 try {
 this.showLoading(true);
 
+console.log('AppManager: Exporting PDF...');
+
 const response = await this.makeAPICall('POST', {
 action: 'exportPDF',
 filters: this.currentFilters
 });
 
-if (response.status === 'success') {
-if (response.pdf_url) {
-window.open(response.pdf_url, '_blank');
+console.log('AppManager: PDF export response:', response);
+
+if (response.success === true) {
 window.authManager.showAlert('PDF report generated successfully', 'success');
-} else {
-window.authManager.showAlert('PDF report generated', 'success');
-}
 } else {
 window.authManager.showAlert(response.message || 'Failed to generate PDF', 'error');
 }
 } catch (error) {
-console.error('PDF export error:', error);
+console.error('AppManager: PDF export error:', error);
 window.authManager.showAlert('Failed to generate PDF: ' + error.message, 'error');
 } finally {
 this.showLoading(false);
@@ -346,16 +391,22 @@ options.body = JSON.stringify(data);
 }
 
 try {
+console.log('AppManager: Making API call to:', this.API_ENDPOINT);
+console.log('AppManager: Request data:', data);
+
 const response = await fetch(this.API_ENDPOINT, options);
+
+console.log('AppManager: Response status:', response.status);
 
 if (!response.ok) {
 throw new Error(`HTTP error! status: ${response.status}`);
 }
 
 const result = await response.json();
+console.log('AppManager: API response:', result);
 return result;
 } catch (error) {
-console.error('API call error:', error);
+console.error('AppManager: API call error:', error);
 throw new Error('Failed to connect to server: ' + error.message);
 }
 }
@@ -364,6 +415,9 @@ showModal(modalId) {
 const modal = document.getElementById(modalId);
 if (modal) {
 modal.style.display = 'flex';
+console.log('AppManager: Modal shown:', modalId);
+} else {
+console.error('AppManager: Modal not found:', modalId);
 }
 }
 
@@ -371,6 +425,9 @@ closeModal(modalId) {
 const modal = document.getElementById(modalId);
 if (modal) {
 modal.style.display = 'none';
+console.log('AppManager: Modal closed:', modalId);
+} else {
+console.error('AppManager: Modal not found for closing:', modalId);
 }
 }
 
@@ -378,6 +435,9 @@ showLoading(show) {
 const loadingOverlay = document.getElementById('loading-overlay');
 if (loadingOverlay) {
 loadingOverlay.style.display = show ? 'flex' : 'none';
+console.log('AppManager: Loading overlay:', show ? 'shown' : 'hidden');
+} else {
+console.error('AppManager: Loading overlay not found');
 }
 }
 
@@ -416,4 +476,5 @@ return text.replace(/[&<>"']/g, (m) => map[m]);
 // Initialize app manager when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
 window.appManager = new AppManager();
+console.log('AppManager: AppManager instance created:', window.appManager);
 });
