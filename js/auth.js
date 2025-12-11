@@ -1,19 +1,21 @@
 /**
-* Authentication and Session Management - FIXED VERSION
+* Authentication and Session Management - COMPREHENSIVE FIX
 */
 
 class AuthManager {
 constructor() {
-this.API_ENDPOINT = 'https://script.google.com/macros/s/AKfycbx_oUdtIKJSA639p0pHq4oqIbaDyiBf_kajHpK-zWgRXvojQxj73jHPethx0yRDEZvr/exec';
+this.API_ENDPOINT = 'https://script.google.com/macros/s/AKfycbx3rWunag2r2pAxGlCqWYoqo85oz15bPEJHPHRs8YKmIQVWV8FB4atITNqGH7XfZFQA/exec';
 this.SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes
 this.sessionCheckInterval = null;
 this.init();
 }
 
 init() {
+console.log('AuthManager: Initializing...');
 this.checkExistingSession();
 this.setupEventListeners();
 this.startSessionMonitoring();
+console.log('AuthManager: Initialization complete');
 }
 
 setupEventListeners() {
@@ -22,15 +24,22 @@ const logoutBtn = document.getElementById('logout-btn');
 
 if (loginForm) {
 loginForm.addEventListener('submit', (e) => this.handleLogin(e));
+console.log('AuthManager: Login form event listener added');
+} else {
+console.error('AuthManager: Login form not found!');
 }
 
 if (logoutBtn) {
 logoutBtn.addEventListener('click', () => this.handleLogout());
+console.log('AuthManager: Logout button event listener added');
+} else {
+console.warn('AuthManager: Logout button not found');
 }
 }
 
 async handleLogin(event) {
 event.preventDefault();
+console.log('AuthManager: handleLogin called');
 
 const username = document.getElementById('username').value.trim();
 const password = document.getElementById('password').value.trim();
@@ -43,24 +52,32 @@ return;
 try {
 this.showLoading(true);
 
+console.log('AuthManager: Making API call with username:', username);
+
 const response = await this.makeAPICall('POST', {
 action: 'login',
 username: username,
 password: password
 });
 
-if (response.status === 'success') {
-this.setSession(response.data);
+console.log('AuthManager: API Response received:', response);
+
+// FIXED: Check for 'success' instead of 'status'
+if (response.success === true) {
+console.log('AuthManager: Login successful, setting session');
+this.setSession(response.user); // FIXED: Use response.user instead of response.data
 this.showAlert('Login successful!', 'success');
-// Use setTimeout to ensure DOM updates are complete
+console.log('AuthManager: Calling redirectToApp...');
+// Increase timeout to ensure DOM updates
 setTimeout(() => {
 this.redirectToApp();
-}, 100);
+}, 500);
 } else {
+console.error('AuthManager: Login failed:', response.message);
 this.showAlert(response.message || 'Login failed', 'error');
 }
 } catch (error) {
-console.error('Login error:', error);
+console.error('AuthManager: Login error:', error);
 this.showAlert('Login failed: ' + error.message, 'error');
 } finally {
 this.showLoading(false);
@@ -68,6 +85,7 @@ this.showLoading(false);
 }
 
 handleLogout() {
+console.log('AuthManager: handleLogout called');
 this.clearSession();
 this.stopSessionMonitoring();
 this.showAlert('Logged out successfully', 'success');
@@ -87,21 +105,29 @@ options.body = JSON.stringify(data);
 }
 
 try {
+console.log('AuthManager: Making API call to:', this.API_ENDPOINT);
+console.log('AuthManager: Request options:', options);
+
 const response = await fetch(this.API_ENDPOINT, options);
+
+console.log('AuthManager: Response status:', response.status);
+console.log('AuthManager: Response ok:', response.ok);
 
 if (!response.ok) {
 throw new Error(`HTTP error! status: ${response.status}`);
 }
 
 const result = await response.json();
+console.log('AuthManager: Parsed response:', result);
 return result;
 } catch (error) {
-console.error('API call error:', error);
+console.error('AuthManager: API call error:', error);
 throw new Error('Failed to connect to server: ' + error.message);
 }
 }
 
 setSession(userData) {
+console.log('AuthManager: Setting session with user data:', userData);
 const sessionData = {
 user: userData,
 timestamp: Date.now(),
@@ -109,6 +135,7 @@ expires: Date.now() + this.SESSION_TIMEOUT
 };
 
 localStorage.setItem('lighting_app_session', JSON.stringify(sessionData));
+console.log('AuthManager: Session saved to localStorage');
 }
 
 getSession() {
@@ -126,7 +153,7 @@ return null;
 
 return session;
 } catch (error) {
-console.error('Session parse error:', error);
+console.error('AuthManager: Session parse error:', error);
 this.clearSession();
 return null;
 }
@@ -137,9 +164,13 @@ localStorage.removeItem('lighting_app_session');
 }
 
 checkExistingSession() {
+console.log('AuthManager: Checking existing session...');
 const session = this.getSession();
 if (session && session.user) {
+console.log('AuthManager: Existing session found, redirecting to app');
 this.redirectToApp();
+} else {
+console.log('AuthManager: No existing session');
 }
 }
 
@@ -154,6 +185,7 @@ return session ? session.user : null;
 }
 
 startSessionMonitoring() {
+console.log('AuthManager: Starting session monitoring');
 // Check session every minute
 this.sessionCheckInterval = setInterval(() => {
 this.validateSession();
@@ -187,48 +219,66 @@ return true;
 redirectToApp() {
 console.log('AuthManager: redirectToApp called');
 
+// Ensure DOM is ready
+if (document.readyState === 'loading') {
+console.log('AuthManager: DOM still loading, waiting...');
+setTimeout(() => this.redirectToApp(), 100);
+return;
+}
+
+console.log('AuthManager: Current elements status:');
+console.log('  login-section element:', document.getElementById('login-section'));
+console.log('  main-app element:', document.getElementById('main-app'));
+
 // Hide login section
 const loginSection = document.getElementById('login-section');
 if (loginSection) {
 loginSection.style.display = 'none';
+console.log('AuthManager: login-section hidden');
 } else {
 console.error('AuthManager: login-section element not found!');
+return;
 }
 
 // Show main app
 const mainApp = document.getElementById('main-app');
 if (mainApp) {
 mainApp.style.display = 'block';
+console.log('AuthManager: main-app shown');
 } else {
 console.error('AuthManager: main-app element not found!');
+return;
 }
 
-// Initialize app with user data - with retry mechanism
-this.initializeAppWithRetry();
+// Wait for appManager with more aggressive retry
+this.waitForAppManager();
 }
 
-initializeAppWithRetry() {
-const maxRetries = 10;
-let retries = 0;
+waitForAppManager() {
+console.log('AuthManager: Waiting for appManager...');
+let attempts = 0;
+const maxAttempts = 20;
 
-const tryInitialize = () => {
+const checkAppManager = () => {
+attempts++;
+console.log(`AuthManager: Attempt ${attempts}/${maxAttempts} - checking appManager`);
+
 if (window.appManager) {
-console.log('AuthManager: appManager found, initializing...');
+console.log('AuthManager: appManager found! Initializing...');
 window.appManager.initializeWithUser(this.getCurrentUser());
-return true;
-} else if (retries < maxRetries) {
-retries++;
-console.log(`AuthManager: appManager not ready, retry ${retries}/${maxRetries}`);
-setTimeout(tryInitialize, 100);
-return false;
+console.log('AuthManager: App initialization complete');
+return;
+}
+
+if (attempts < maxAttempts) {
+setTimeout(checkAppManager, 200); // Wait 200ms between attempts
 } else {
-console.error('AuthManager: Failed to initialize appManager after maximum retries');
-this.showAlert('App initialization failed. Please refresh the page.', 'error');
-return false;
+console.error('AuthManager: Failed to find appManager after maximum attempts');
+this.showAlert('Application initialization failed. Please refresh the page.', 'error');
 }
 };
 
-tryInitialize();
+checkAppManager();
 }
 
 redirectToLogin() {
@@ -238,18 +288,27 @@ console.log('AuthManager: redirectToLogin called');
 const loginSection = document.getElementById('login-section');
 if (loginSection) {
 loginSection.style.display = 'flex';
+console.log('AuthManager: login-section shown');
+} else {
+console.error('AuthManager: login-section element not found!');
 }
 
 // Hide main app
 const mainApp = document.getElementById('main-app');
 if (mainApp) {
 mainApp.style.display = 'none';
+console.log('AuthManager: main-app hidden');
+} else {
+console.error('AuthManager: main-app element not found!');
 }
 
 // Clear form
 const loginForm = document.getElementById('login-form');
 if (loginForm) {
 loginForm.reset();
+console.log('AuthManager: login form reset');
+} else {
+console.error('AuthManager: login-form element not found!');
 }
 }
 
@@ -257,12 +316,19 @@ showLoading(show) {
 const loadingOverlay = document.getElementById('loading-overlay');
 if (loadingOverlay) {
 loadingOverlay.style.display = show ? 'flex' : 'none';
+console.log('AuthManager: Loading overlay:', show ? 'shown' : 'hidden');
+} else {
+console.error('AuthManager: loading-overlay element not found!');
 }
 }
 
 showAlert(message, type = 'info') {
+console.log('AuthManager: Showing alert:', message, type);
 const alertContainer = document.getElementById('alert-container');
-if (!alertContainer) return;
+if (!alertContainer) {
+console.error('AuthManager: alert-container element not found!');
+return;
+}
 
 const alert = document.createElement('div');
 alert.className = `alert alert-${type}`;
@@ -284,5 +350,7 @@ alert.remove();
 
 // Initialize auth manager when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
+console.log('AuthManager: DOM loaded, initializing AuthManager');
 window.authManager = new AuthManager();
+console.log('AuthManager: AuthManager instance created:', window.authManager);
 });
