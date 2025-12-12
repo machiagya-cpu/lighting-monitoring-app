@@ -1,5 +1,5 @@
 /**
-* Main Application Logic - FIXED VERSION
+* Main Application Logic - COMPLETE FIX VERSION
 */
 
 class AppManager {
@@ -8,6 +8,8 @@ this.API_ENDPOINT = 'https://script.google.com/macros/s/AKfycbx_oUdtIKJSA639p0pH
 this.currentUser = null;
 this.currentData = [];
 this.currentFilters = {};
+this.currentPage = 1;
+this.itemsPerPage = 10;
 this.init();
 }
 
@@ -67,6 +69,25 @@ if (e.target.classList.contains('modal')) {
 this.closeModal(e.target.id);
 }
 });
+
+// Pagination controls
+this.setupPaginationControls();
+}
+
+setupPaginationControls() {
+// Create pagination container if it doesn't exist
+let paginationContainer = document.getElementById('pagination-container');
+if (!paginationContainer) {
+paginationContainer = document.createElement('div');
+paginationContainer.id = 'pagination-container';
+paginationContainer.className = 'pagination-container';
+
+// Find table container and append pagination after it
+const tableContainer = document.querySelector('.table-container');
+if (tableContainer) {
+tableContainer.parentNode.insertBefore(paginationContainer, tableContainer.nextSibling);
+}
+}
 }
 
 initializeWithUser(user) {
@@ -109,6 +130,7 @@ console.log('AppManager: Data loaded successfully, count:', this.currentData.len
 this.updateDashboard();
 this.updateDataTable();
 this.populateFilters();
+this.updatePagination();
 console.log('AppManager: Dashboard updated successfully');
 } else {
 console.error('AppManager: Failed to load data:', response.message);
@@ -173,7 +195,14 @@ tbody.appendChild(emptyRow);
 return;
 }
 
-this.currentData.forEach(item => {
+// Get paginated data
+const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+const endIndex = startIndex + this.itemsPerPage;
+const paginatedData = this.currentData.slice(startIndex, endIndex);
+
+console.log(`AppManager: Showing page ${this.currentPage}, items ${startIndex}-${endIndex} of ${this.currentData.length}`);
+
+paginatedData.forEach(item => {
 const row = document.createElement('tr');
 row.innerHTML = `
 <td>${this.escapeHtml(item.floor || item.lantai || '')}</td>
@@ -198,7 +227,46 @@ row.innerHTML = `
 tbody.appendChild(row);
 });
 
-console.log('AppManager: Data table updated with', this.currentData.length, 'rows');
+console.log('AppManager: Data table updated with', paginatedData.length, 'rows for page', this.currentPage);
+}
+
+updatePagination() {
+console.log('AppManager: Updating pagination...');
+const paginationContainer = document.getElementById('pagination-container');
+if (!paginationContainer) return;
+
+const totalPages = Math.ceil(this.currentData.length / this.itemsPerPage);
+const currentPage = this.currentPage;
+
+let paginationHTML = `
+<div class="pagination-info">
+Showing ${Math.min((currentPage - 1) * this.itemsPerPage + 1, this.currentData.length)} to ${Math.min(currentPage * this.itemsPerPage, this.currentData.length)} of ${this.currentData.length} entries
+</div>
+<div class="pagination-controls">
+`;
+
+if (currentPage > 1) {
+paginationHTML += `<button class="btn btn-sm btn-secondary" onclick="window.appManager.goToPage(${currentPage - 1})">Previous</button>`;
+}
+
+paginationHTML += `<span class="pagination-page">Page ${currentPage} of ${totalPages}</span>`;
+
+if (currentPage < totalPages) {
+paginationHTML += `<button class="btn btn-sm btn-secondary" onclick="window.appManager.goToPage(${currentPage + 1})">Next</button>`;
+}
+
+paginationHTML += '</div>';
+
+paginationContainer.innerHTML = paginationHTML;
+}
+
+goToPage(page) {
+const totalPages = Math.ceil(this.currentData.length / this.itemsPerPage);
+if (page >= 1 && page <= totalPages) {
+this.currentPage = page;
+this.updateDataTable();
+this.updatePagination();
+}
 }
 
 populateFilters() {
@@ -219,20 +287,27 @@ floorFilter.appendChild(option);
 }
 
 applyFilters() {
+console.log('AppManager: Applying filters...');
 this.currentFilters = {
 floor: document.getElementById('floor-filter').value,
 status: document.getElementById('status-filter').value,
 search: document.getElementById('search-filter').value
 };
 
+console.log('AppManager: Current filters:', this.currentFilters);
+
+// Reset to first page when filters change
+this.currentPage = 1;
 this.loadDashboard();
 }
 
 clearFilters() {
+console.log('AppManager: Clearing filters...');
 document.getElementById('floor-filter').value = '';
 document.getElementById('status-filter').value = '';
 document.getElementById('search-filter').value = '';
 this.currentFilters = {};
+this.currentPage = 1;
 this.loadDashboard();
 }
 
@@ -319,7 +394,8 @@ return;
 }
 }
 
-const action = data.record_id ? 'updateLightingData' : 'addLightingData';
+// FIXED: Always use 'addData' action (not 'addLightingData')
+const action = data.record_id ? 'updateData' : 'addData';
 if (data.record_id) {
 delete data.record_id;
 }
