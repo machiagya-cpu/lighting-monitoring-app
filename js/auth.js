@@ -1,5 +1,5 @@
 /**
-* Authentication and Session Management - FIXED VERSION
+* Authentication and Session Management - SECURITY FIXED VERSION
 */
 
 class AuthManager {
@@ -12,10 +12,54 @@ this.init();
 
 init() {
 console.log('AuthManager: Initializing...');
-this.checkExistingSession();
+// CRITICAL FIX: Always check session first
+this.checkAuthentication();
 this.setupEventListeners();
 this.startSessionMonitoring();
 console.log('AuthManager: Initialization complete');
+}
+
+// CRITICAL FIX: Check authentication before showing anything
+checkAuthentication() {
+console.log('AuthManager: Checking authentication...');
+const session = this.getSession();
+
+if (!session || !session.user) {
+console.log('AuthManager: No valid session, showing login');
+// Force show login, hide main app
+this.forceShowLogin();
+} else {
+console.log('AuthManager: Valid session found, checking expiry...');
+// Check if session is expired
+if (Date.now() > session.expires) {
+console.log('AuthManager: Session expired, clearing and showing login');
+this.clearSession();
+this.forceShowLogin();
+} else {
+console.log('AuthManager: Valid session, allowing dashboard access');
+// Session is valid, allow dashboard
+}
+}
+}
+
+forceShowLogin() {
+console.log('AuthManager: Force showing login page...');
+const loginSection = document.getElementById('login-section');
+const mainApp = document.getElementById('main-app');
+
+if (loginSection) {
+loginSection.style.display = 'flex';
+console.log('AuthManager: Login section shown');
+} else {
+console.error('AuthManager: Login section not found!');
+}
+
+if (mainApp) {
+mainApp.style.display = 'none';
+console.log('AuthManager: Main app hidden');
+} else {
+console.error('AuthManager: Main app not found!');
+}
 }
 
 setupEventListeners() {
@@ -62,13 +106,11 @@ password: password
 
 console.log('AuthManager: API Response received:', response);
 
-// FIXED: Check for 'success' instead of 'status'
 if (response.success === true) {
 console.log('AuthManager: Login successful, setting session');
-this.setSession(response.user); // FIXED: Use response.user instead of response.data
+this.setSession(response.user);
 this.showAlert('Login successful!', 'success');
 console.log('AuthManager: Calling redirectToApp...');
-// Increase timeout to ensure DOM updates
 setTimeout(() => {
 this.redirectToApp();
 }, 500);
