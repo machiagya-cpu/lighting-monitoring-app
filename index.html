@@ -3,90 +3,320 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lighting Monitoring - Dynamic Dashboard</title>
+    <title>Lighting Monitoring Dashboard</title>
+    
+    <!-- External Resources -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- GitHub Pages Compatible CSS Path -->
     <link rel="stylesheet" href="./css/style.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Fallback CSS untuk GitHub Pages - akan digunakan jika style.css gagal dimuat */
+        .fallback-notice {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #ef4444;
+            color: white;
+            text-align: center;
+            padding: 1rem;
+            font-weight: bold;
+            z-index: 9999;
+        }
+        
+        body {
+            font-family: 'Inter', Arial, sans-serif !important;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            margin: 0 !important;
+            padding: 20px !important;
+        }
+
+        #app {
+            max-width: 1400px !important;
+            margin: 0 auto !important;
+            background: white !important;
+            border-radius: 8px !important;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1) !important;
+            overflow: hidden !important;
+            min-height: calc(100vh - 40px) !important;
+        }
+
+        .login-container {
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            min-height: 100vh !important;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            padding: 2rem !important;
+        }
+
+        .login-box {
+            background: white !important;
+            padding: 3rem !important;
+            border-radius: 8px !important;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1) !important;
+            width: 100% !important;
+            max-width: 450px !important;
+        }
+
+        .btn {
+            padding: 1rem 2rem !important;
+            border: none !important;
+            border-radius: 8px !important;
+            font-size: 1rem !important;
+            font-weight: 600 !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease-in-out !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 0.75rem !important;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2563eb, #3b82f6) !important;
+            color: white !important;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #1d4ed8, #1e40af) !important;
+            transform: translateY(-2px) !important;
+        }
+
+        .btn-secondary {
+            background: white !important;
+            color: #64748b !important;
+            border: 2px solid #e2e8f0 !important;
+        }
+
+        .btn-secondary:hover {
+            background: #f8fafc !important;
+            border-color: #2563eb !important;
+            color: #2563eb !important;
+        }
+
+        .form-group {
+            margin-bottom: 1.75rem !important;
+        }
+
+        .form-group input {
+            width: 100% !important;
+            padding: 1rem !important;
+            border: 2px solid #e2e8f0 !important;
+            border-radius: 8px !important;
+            font-size: 1rem !important;
+        }
+
+        .form-group input:focus {
+            border-color: #2563eb !important;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1) !important;
+            outline: none !important;
+        }
+
+        .stats-grid {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+            gap: 2rem !important;
+            margin-bottom: 3rem !important;
+        }
+
+        .stat-card {
+            background: white !important;
+            border-radius: 8px !important;
+            padding: 2rem !important;
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
+            transition: all 0.2s ease-in-out !important;
+            position: relative !important;
+            border: 1px solid #e2e8f0 !important;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px) scale(1.02) !important;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1) !important;
+        }
+
+        .table-container {
+            background: white !important;
+            border-radius: 8px !important;
+            overflow: hidden !important;
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
+            border: 1px solid #e2e8f0 !important;
+        }
+
+        #data-table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+            font-size: 0.875rem !important;
+        }
+
+        #data-table thead th {
+            background: #f8fafc !important;
+            color: #1e293b !important;
+            font-weight: 800 !important;
+            padding: 1.25rem 1rem !important;
+            text-align: left !important;
+            border-bottom: 2px solid #e2e8f0 !important;
+        }
+
+        #data-table tbody tr:hover {
+            background: rgba(59, 130, 246, 0.02) !important;
+            transform: scale(1.005) !important;
+        }
+
+        #data-table tbody td {
+            padding: 1.25rem 1rem !important;
+            vertical-align: middle !important;
+            font-weight: 500 !important;
+        }
+
+        .modal {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            background: rgba(0, 0, 0, 0.6) !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            z-index: 1000 !important;
+            backdrop-filter: blur(8px) !important;
+        }
+
+        .modal-content {
+            background: white !important;
+            border-radius: 8px !important;
+            max-width: 700px !important;
+            width: 90% !important;
+            max-height: 90vh !important;
+            overflow-y: auto !important;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1) !important;
+        }
+
+        .app-header {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%) !important;
+            color: white !important;
+            padding: 2rem !important;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1) !important;
+        }
+
+        .dashboard-section {
+            padding: 2.5rem !important;
+            background: #f8fafc !important;
+        }
+
+        .data-section {
+            padding: 2.5rem !important;
+            background: white !important;
+        }
+
+        .filters-container {
+            background: #f8fafc !important;
+            border-radius: 8px !important;
+            padding: 2rem !important;
+            margin-bottom: 2rem !important;
+            border: 1px solid #e2e8f0 !important;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr !important;
+            }
+            
+            .dashboard-section,
+            .data-section {
+                padding: 1.5rem !important;
+            }
+        }
+    </style>
 </head>
 <body>
+    <!-- Fallback Notice untuk CSS Loading Issues -->
+    <div class="fallback-notice" id="fallback-notice">
+        <i class="fas fa-exclamation-triangle"></i>
+        Styling tidak termuat - Pastikan file CSS tersedia di GitHub Pages
+    </div>
+
+    <!-- Main App Container -->
     <div id="app">
         <!-- Login Section -->
-        <div id="login-section" class="login-container" style="display: flex;">
+        <section id="login-section" class="login-container" style="display: flex;">
             <div class="login-box">
                 <div class="login-header">
-                    <h1><i class="fas fa-lightbulb"></i> Lighting Monitoring</h1>
-                    <p>Sistem Monitoring Instalasi Lampu</p>
+                    <h1>
+                        <i class="fas fa-lightbulb"></i>
+                        Lighting Monitoring
+                    </h1>
+                    <p>Sistem monitoring pencahayaan pintar</p>
                 </div>
                 
                 <form id="login-form">
                     <div class="form-group">
                         <label for="username">Username</label>
-                        <input type="text" id="username" name="username" required>
                         <i class="fas fa-user"></i>
+                        <input type="text" id="username" name="username" placeholder="Masukkan username" required>
                     </div>
                     
                     <div class="form-group">
                         <label for="password">Password</label>
-                        <input type="password" id="password" name="password" required>
                         <i class="fas fa-lock"></i>
+                        <input type="password" id="password" name="password" placeholder="Masukkan password" required>
                     </div>
                     
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-sign-in-alt"></i> Login
+                        <i class="fas fa-sign-in-alt"></i>
+                        Masuk
                     </button>
                 </form>
                 
                 <div class="demo-credentials">
-                    <h4>Demo Accounts:</h4>
-                    <p><strong>Admin:</strong> admin / password123</p>
-                    <p><strong>User1:</strong> user1 / password123</p>
-                    <p><strong>User2:</strong> user2 / password123</p>
-                    <p><strong>User3:</strong> user3 / password123</p>
+                    <h4>Demo Credentials</h4>
+                    <p><strong>Username:</strong> admin</p>
+                    <p><strong>Password:</strong> password123</p>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Main Application -->
-        <div id="main-app" class="app-container" style="display: none;">
+        <!-- Dashboard Section -->
+        <section id="dashboard-section" style="display: none;">
             <!-- Header -->
             <header class="app-header">
                 <div class="header-content">
-                    <h1><i class="fas fa-lightbulb"></i> Lighting Monitoring</h1>
+                    <h1>
+                        <i class="fas fa-lightbulb"></i>
+                        Lighting Monitoring Dashboard
+                    </h1>
                     <div class="user-info">
-                        <span id="user-name">Administrator</span>
-                        <span id="user-role" class="role-badge role-admin">Admin</span>
-                        <button id="logout-btn" class="btn btn-secondary btn-sm">
-                            <i class="fas fa-sign-out-alt"></i> Logout
+                        <span id="user-name">Admin User</span>
+                        <span class="role-badge">Administrator</span>
+                        <button class="btn btn-secondary btn-sm" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Keluar
                         </button>
                     </div>
                 </div>
             </header>
 
-            <!-- Dashboard -->
-            <section id="dashboard" class="dashboard-section">
+            <!-- Dashboard Stats -->
+            <section class="dashboard-section">
                 <div class="dashboard-header">
-                    <h2><i class="fas fa-chart-line"></i> Dashboard Overview</h2>
-                    <div class="dashboard-actions">
-                        <button id="refresh-data-btn" class="btn btn-secondary">
-                            <i class="fas fa-sync-alt"></i> Refresh Data
-                        </button>
-                        <button id="export-pdf-btn" class="btn btn-primary">
-                            <i class="fas fa-file-pdf"></i> Export Report
-                        </button>
-                    </div>
+                    <h2>
+                        <i class="fas fa-chart-line"></i>
+                        Ringkasan Dashboard
+                    </h2>
                 </div>
-
-                <!-- Improved Stats Cards -->
+                
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-icon">
                             <i class="fas fa-lightbulb"></i>
                         </div>
                         <div class="stat-content">
-                            <h3 id="total-fittings">0</h3>
-                            <p>Total Fitting</p>
+                            <h3 id="total-devices">0</h3>
+                            <p>Total Perangkat</p>
                         </div>
                     </div>
                     
@@ -95,181 +325,194 @@
                             <i class="fas fa-check-circle"></i>
                         </div>
                         <div class="stat-content">
-                            <h3 id="completed-installations">0</h3>
-                            <p>Completed</p>
+                            <h3 id="active-devices">0</h3>
+                            <p>Perangkat Aktif</p>
                         </div>
                     </div>
                     
                     <div class="stat-card">
                         <div class="stat-icon">
-                            <i class="fas fa-clock"></i>
+                            <i class="fas fa-exclamation-triangle"></i>
                         </div>
                         <div class="stat-content">
-                            <h3 id="in-progress">0</h3>
-                            <p>In Progress</p>
+                            <h3 id="warning-devices">0</h3>
+                            <p>Peringatan</p>
                         </div>
                     </div>
                     
                     <div class="stat-card">
                         <div class="stat-icon">
-                            <i class="fas fa-bolt"></i>
+                            <i class="fas fa-chart-bar"></i>
                         </div>
                         <div class="stat-content">
-                            <h3 id="total-wattage">0</h3>
-                            <p>Total Wattage</p>
+                            <h3 id="average-usage">0%</h3>
+                            <p>Rata-rata Penggunaan</p>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- Data Management -->
-            <section id="data-management" class="data-section">
+            <!-- Data Management Section -->
+            <section class="data-section">
                 <div class="section-header">
-                    <h2><i class="fas fa-table"></i> Data Management</h2>
-                    <button id="add-data-btn" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Add New Data
-                    </button>
+                    <h2>
+                        <i class="fas fa-database"></i>
+                        Manajemen Data
+                    </h2>
+                    <div class="dashboard-actions">
+                        <button class="btn btn-primary" onclick="showAddModal()">
+                            <i class="fas fa-plus"></i>
+                            Tambah Data Baru
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Improved Filters -->
+                <!-- Filters -->
                 <div class="filters-container">
                     <div class="filter-row">
                         <div class="filter-group">
-                            <label for="floor-filter">Floor Level</label>
-                            <select id="floor-filter">
-                                <option value="">All Floors</option>
+                            <label for="filter-status">Status</label>
+                            <select id="filter-status">
+                                <option value="">Semua Status</option>
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                                <option value="Maintenance">Maintenance</option>
                             </select>
                         </div>
                         
                         <div class="filter-group">
-                            <label for="status-filter">Status</label>
-                            <select id="status-filter">
-                                <option value="">All Status</option>
-                                <option value="Pending">Pending</option>
-                                <option value="In Progress">In Progress</option>
-                                <option value="Completed">Completed</option>
+                            <label for="filter-location">Lokasi</label>
+                            <select id="filter-location">
+                                <option value="">Semua Lokasi</option>
+                                <option value="Office">Office</option>
+                                <option value="Warehouse">Warehouse</option>
+                                <option value="Outdoor">Outdoor</option>
+                                <option value="Corridor">Corridor</option>
                             </select>
                         </div>
                         
                         <div class="filter-group">
-                            <label for="search-filter">Search</label>
-                            <input type="text" id="search-filter" placeholder="Search by reference or area...">
+                            <label for="filter-date-from">Tanggal Dari</label>
+                            <input type="date" id="filter-date-from">
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label for="filter-date-to">Tanggal Sampai</label>
+                            <input type="date" id="filter-date-to">
                         </div>
                         
                         <div class="filter-actions">
-                            <button id="apply-filters-btn" class="btn btn-secondary">
-                                <i class="fas fa-filter"></i> Apply Filters
+                            <button class="btn btn-primary" onclick="applyFilters()">
+                                <i class="fas fa-filter"></i>
+                                Filter
                             </button>
-                            
-                            <button id="clear-filters-btn" class="btn btn-secondary">
-                                <i class="fas fa-times"></i> Clear
+                            <button class="btn btn-secondary" onclick="clearFilters()">
+                                <i class="fas fa-times"></i>
+                                Reset
                             </button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Improved Data Table -->
+                <!-- Data Table -->
                 <div class="table-container">
                     <table id="data-table">
                         <thead>
                             <tr>
-                                <th>Floor</th>
-                                <th>Area</th>
-                                <th>Room</th>
-                                <th>Fitting Ref</th>
-                                <th>Type</th>
-                                <th>Qty</th>
-                                <th>Watt</th>
+                                <th>ID</th>
+                                <th>Nama Perangkat</th>
+                                <th>Lokasi</th>
                                 <th>Status</th>
-                                <th>Order Date</th>
-                                <th>Completion Date</th>
-                                <th>Actions</th>
+                                <th>Konsumsi Daya</th>
+                                <th>Terakhir Diperbarui</th>
+                                <th>Aksi</th>
                             </tr>
                         </thead>
-                        <tbody id="data-table-body">
+                        <tbody>
                             <!-- Data will be loaded here -->
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Pagination -->
+                <div class="pagination-container">
+                    <div class="pagination-info">
+                        Menampilkan <span id="page-start">1</span>-<span id="page-end">10</span> 
+                        dari <span id="total-records">0</span> data
+                    </div>
+                    <div class="pagination-controls">
+                        <button class="btn btn-secondary btn-sm" onclick="previousPage()">
+                            <i class="fas fa-chevron-left"></i>
+                            Sebelumnya
+                        </button>
+                        <span class="pagination-page">
+                            Halaman <span id="current-page">1</span> dari <span id="total-pages">1</span>
+                        </span>
+                        <button class="btn btn-secondary btn-sm" onclick="nextPage()">
+                            Selanjutnya
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
             </section>
-        </div>
+        </section>
     </div>
 
-    <!-- Improved Modal for Add/Edit Data -->
+    <!-- Add/Edit Data Modal -->
     <div id="data-modal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="modal-title">Add New Data</h3>
-                <button class="close" onclick="closeModal('data-modal')">&times;</button>
+                <h3 id="modal-title">Tambah Data Baru</h3>
+                <button class="close" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
             <div class="modal-body">
                 <form id="data-form">
-                    <input type="hidden" id="record-id" name="record_id">
-                    
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="floor">Floor Level *</label>
-                            <input type="text" id="floor" name="floor" required>
+                            <label for="device-name">Nama Perangkat</label>
+                            <input type="text" id="device-name" name="deviceName" required>
                         </div>
                         <div class="form-group">
-                            <label for="area">Area</label>
-                            <input type="text" id="area" name="area">
-                        </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="room">Room</label>
-                            <input type="text" id="room" name="room">
-                        </div>
-                        <div class="form-group">
-                            <label for="fitting_ref">Fitting Reference *</label>
-                            <input type="text" id="fitting_ref" name="fitting_ref" required>
-                        </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="type">Type</label>
-                            <input type="text" id="type" name="type">
-                        </div>
-                        <div class="form-group">
-                            <label for="qty">Quantity *</label>
-                            <input type="number" id="qty" name="qty" min="1" required>
-                        </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="watt">Wattage *</label>
-                            <input type="number" id="watt" name="watt" min="0" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="status">Status</label>
-                            <select id="status" name="status">
-                                <option value="Pending">Pending</option>
-                                <option value="In Progress">In Progress</option>
-                                <option value="Completed">Completed</option>
+                            <label for="device-location">Lokasi</label>
+                            <select id="device-location" name="location" required>
+                                <option value="">Pilih Lokasi</option>
+                                <option value="Office">Office</option>
+                                <option value="Warehouse">Warehouse</option>
+                                <option value="Outdoor">Outdoor</option>
+                                <option value="Corridor">Corridor</option>
                             </select>
                         </div>
                     </div>
                     
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="order_date">Order Date</label>
-                            <input type="date" id="order_date" name="order_date">
+                            <label for="device-status">Status</label>
+                            <select id="device-status" name="status" required>
+                                <option value="">Pilih Status</option>
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                                <option value="Maintenance">Maintenance</option>
+                            </select>
                         </div>
                         <div class="form-group">
-                            <label for="completion_date">Completion Date</label>
-                            <input type="date" id="completion_date" name="completion_date">
+                            <label for="power-consumption">Konsumsi Daya (Watt)</label>
+                            <input type="number" id="power-consumption" name="powerConsumption" min="0" step="0.1" required>
                         </div>
                     </div>
+                    
+                    <input type="hidden" id="edit-id" name="editId">
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('data-modal')">Cancel</button>
-                <button type="submit" form="data-form" class="btn btn-primary">
-                    <i class="fas fa-save"></i> Save Data
+                <button class="btn btn-secondary" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                    Batal
+                </button>
+                <button class="btn btn-primary" onclick="saveData()">
+                    <i class="fas fa-save"></i>
+                    Simpan
                 </button>
             </div>
         </div>
@@ -278,15 +521,28 @@
     <!-- Loading Overlay -->
     <div id="loading-overlay" class="loading-overlay" style="display: none;">
         <div class="loading-spinner">
-            <i class="fas fa-spinner fa-spin"></i>
-            <p>Loading data...</p>
+            <i class="fas fa-spinner"></i>
+            <p>Memproses permintaan...</p>
         </div>
     </div>
 
     <!-- Alert Container -->
     <div id="alert-container" class="alert-container"></div>
 
-    <!-- Scripts -->
+    <!-- JavaScript Files - Order Matters! -->
+    <script>
+        // Fallback CSS loading detection
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                const stylesLoaded = document.styleSheets.length > 0;
+                if (!stylesLoaded) {
+                    document.getElementById('fallback-notice').style.display = 'block';
+                }
+            }, 1000);
+        });
+    </script>
+    
+    <!-- Load JavaScript files in correct order -->
     <script src="./js/auth.js"></script>
     <script src="./js/app.js"></script>
 </body>
