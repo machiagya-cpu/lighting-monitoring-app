@@ -243,7 +243,7 @@
     <!-- Main App Container -->
     <div id="app">
         <!-- Login Section -->
-        <section id="login-section" class="login-container" style="display: none;">
+        <section id="login-section" class="login-container" style="display: flex;">
             <div class="login-box">
                 <div class="login-header">
                     <h1>
@@ -281,7 +281,7 @@
         </section>
 
         <!-- Dashboard Section -->
-        <section id="dashboard-section" class="dashboard-section" style="display: none;">
+        <section id="dashboard-section" style="display: none;">
             <!-- Header -->
             <header class="app-header">
                 <div class="header-content">
@@ -542,142 +542,11 @@
         });
     </script>
     
+    <!-- IMPORTANT: These are the corrected JavaScript files -->
     <script>
 /**
-* ENFORCED AUTHENTICATION SYSTEM
-* Hard-coded authentication enforcement
-*/
-
-// CRITICAL: Global authentication state
-let AUTH_SYSTEM_INITIALIZED = false;
-let CURRENT_USER = null;
-let SESSION_EXPIRY = null;
-
-// Initialize authentication immediately
-(function initializeAuthSystem() {
-    console.log('AUTH SYSTEM: Initializing enforcement system...');
-    
-    // Clear any existing sessions to force login
-    clearExistingSessions();
-    
-    // Force show login screen immediately
-    forceShowLoginScreen();
-    
-    // Setup authentication system
-    setupAuthenticationSystem();
-    
-    // Prevent any dashboard access until authenticated
-    preventUnauthorizedAccess();
-    
-    AUTH_SYSTEM_INITIALIZED = true;
-    console.log('AUTH SYSTEM: Initialized - Login required');
-})();
-
-function clearExistingSessions() {
-    console.log('AUTH SYSTEM: Clearing existing sessions...');
-    localStorage.removeItem('lighting_app_session');
-    localStorage.removeItem('lighting_session');
-    localStorage.removeItem('user_session');
-    localStorage.removeItem('app_session');
-    sessionStorage.clear();
-    console.log('AUTH SYSTEM: All sessions cleared');
-}
-
-function forceShowLoginScreen() {
-    console.log('AUTH SYSTEM: Forcing login screen...');
-    
-    // Hide dashboard section
-    const dashboardSection = document.getElementById('dashboard-section');
-    if (dashboardSection) {
-        dashboardSection.style.display = 'none';
-        console.log('AUTH SYSTEM: Dashboard section hidden');
-    }
-    
-    // Show login section
-    const loginSection = document.getElementById('login-section');
-    if (loginSection) {
-        loginSection.style.display = 'flex';
-        console.log('AUTH SYSTEM: Login section shown');
-    }
-    
-    // Block any attempts to show dashboard
-    const originalShowDashboard = window.showDashboard;
-    if (typeof originalShowDashboard === 'function') {
-        window.showDashboard = function() {
-            console.warn('AUTH SYSTEM: Dashboard access blocked - Not authenticated');
-            alert('Anda harus login terlebih dahulu!');
-            forceShowLoginScreen();
-        };
-    }
-}
-
-function setupAuthenticationSystem() {
-    console.log('AUTH SYSTEM: Setting up authentication system...');
-    
-    // Create global auth functions
-    window.forceLogin = function() {
-        console.log('AUTH SYSTEM: Forcing login...');
-        forceShowLoginScreen();
-    };
-    
-    window.isAuthenticated = function() {
-        return CURRENT_USER !== null && SESSION_EXPIRY && Date.now() < SESSION_EXPIRY;
-    };
-    
-    window.getCurrentUser = function() {
-        return CURRENT_USER;
-    };
-    
-    window.requireAuth = function() {
-        if (!window.isAuthenticated()) {
-            console.warn('AUTH SYSTEM: Authentication required');
-            alert('Anda harus login terlebih dahulu!');
-            forceShowLoginScreen();
-            return false;
-        }
-        return true;
-    };
-    
-    console.log('AUTH SYSTEM: Authentication functions created');
-}
-
-function preventUnauthorizedAccess() {
-    console.log('AUTH SYSTEM: Setting up access prevention...');
-    
-    // Override any global functions that might show dashboard
-    const originalShowModal = window.showModal;
-    if (typeof originalShowModal === 'function') {
-        window.showModal = function(modalId) {
-            if (!window.requireAuth()) return;
-            originalShowModal(modalId);
-        };
-    }
-    
-    // Add authentication checks to button clicks
-    document.addEventListener('click', function(e) {
-        // Check if clicked button requires authentication
-        if (e.target.tagName === 'BUTTON' && e.target.onclick) {
-            const buttonText = e.target.textContent.toLowerCase();
-            if (buttonText.includes('tambah') || 
-                buttonText.includes('add') || 
-                buttonText.includes('filter') ||
-                buttonText.includes('tambah data')) {
-                
-                if (!window.requireAuth()) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    return false;
-                }
-            }
-        }
-    });
-    
-    console.log('AUTH SYSTEM: Access prevention active');
-}
-
-/**
-* Authentication and Session Management - ENFORCED VERSION
-* Hard-coded authentication enforcement
+* Authentication and Session Management - FINAL CORRECTED VERSION
+* Fixed all element ID mismatch issues
 */
 
 class AuthManager {
@@ -689,44 +558,40 @@ this.init();
 }
 
 init() {
-console.log('AuthManager: Initializing with enforced authentication...');
-
-// CRITICAL: Force authentication check immediately
+console.log('AuthManager: Initializing...');
+// CRITICAL FIX: Always check session first
 this.checkAuthentication();
 this.setupEventListeners();
 this.startSessionMonitoring();
 console.log('AuthManager: Initialization complete');
 }
 
-// CRITICAL: Enforced authentication check
+// CRITICAL FIX: Check authentication before showing anything
 checkAuthentication() {
-console.log('AuthManager: Enforcing authentication check...');
+console.log('AuthManager: Checking authentication...');
 const session = this.getSession();
 
 if (!session || !session.user) {
-console.log('AuthManager: No valid session - forcing login');
-// CRITICAL: Force show login and block dashboard access
+console.log('AuthManager: No valid session, showing login');
+// Force show login, hide main app
 this.forceShowLogin();
 } else {
 console.log('AuthManager: Valid session found, checking expiry...');
 // Check if session is expired
 if (Date.now() > session.expires) {
-console.log('AuthManager: Session expired - forcing login');
+console.log('AuthManager: Session expired, clearing and showing login');
 this.clearSession();
 this.forceShowLogin();
 } else {
-console.log('AuthManager: Valid session - allowing dashboard access');
-// Set global authentication state
-CURRENT_USER = session.user;
-SESSION_EXPIRY = session.expires;
-// Show dashboard only if properly authenticated
-this.showDashboard();
+console.log('AuthManager: Valid session, allowing dashboard access');
+// Session is valid, allow dashboard - DO NOT redirect automatically
+// Let user decide or wait for manual interaction
 }
 }
 }
 
 forceShowLogin() {
-console.log('AuthManager: Force showing login screen...');
+console.log('AuthManager: Force showing login page...');
 
 // CORRECTED: Use the actual elements from HTML
 const loginSection = document.getElementById('login-section');
@@ -744,34 +609,6 @@ dashboardSection.style.display = 'none';
 console.log('AuthManager: Dashboard section hidden');
 } else {
 console.error('AuthManager: Dashboard section not found!');
-}
-
-// CRITICAL: Block global authentication
-CURRENT_USER = null;
-SESSION_EXPIRY = null;
-}
-
-showDashboard() {
-console.log('AuthManager: Showing dashboard...');
-
-// Only show dashboard if authenticated
-if (!window.isAuthenticated()) {
-console.warn('AuthManager: Cannot show dashboard - not authenticated');
-this.forceShowLogin();
-return;
-}
-
-const loginSection = document.getElementById('login-section');
-const dashboardSection = document.getElementById('dashboard-section');
-
-if (loginSection) {
-loginSection.style.display = 'none';
-console.log('AuthManager: Login section hidden');
-}
-
-if (dashboardSection) {
-dashboardSection.style.display = 'block';
-console.log('AuthManager: Dashboard section shown');
 }
 }
 
@@ -823,14 +660,9 @@ if (response.success === true) {
 console.log('AuthManager: Login successful, setting session');
 this.setSession(response.user);
 this.showAlert('Login successful!', 'success');
-
-// CRITICAL: Set global authentication state
-CURRENT_USER = response.user;
-SESSION_EXPIRY = Date.now() + this.SESSION_TIMEOUT;
-
-// Show dashboard after successful login
+console.log('AuthManager: Calling redirectToApp...');
 setTimeout(() => {
-this.showDashboard();
+this.redirectToApp();
 }, 500);
 } else {
 console.error('AuthManager: Login failed:', response.message);
@@ -838,23 +670,18 @@ this.showAlert(response.message || 'Login failed', 'error');
 }
 } catch (error) {
 console.error('AuthManager: Login error:', error);
-this.showAlert('Login failed: ' + error.message} finally {
-this, 'error');
-.showLoading(false);
+this.showAlert('Login failed: ' + error.message, 'error');
+} finally {
+this.showLoading(false);
 }
 }
 
 handleLogout() {
 console.log('AuthManager: handleLogout called');
-
-// CRITICAL: Clear global authentication state
-CURRENT_USER = null;
-SESSION_EXPIRY = null;
-
 this.clearSession();
 this.stopSessionMonitoring();
 this.showAlert('Logged out successfully', 'success');
-this.forceShowLogin();
+this.redirectToLogin();
 }
 
 async makeAPICall(method, data) {
@@ -928,12 +755,25 @@ clearSession() {
 localStorage.removeItem('lighting_app_session');
 }
 
+checkExistingSession() {
+console.log('AuthManager: Checking existing session...');
+const session = this.getSession();
+if (session && session.user) {
+console.log('AuthManager: Existing session found, redirecting to app');
+this.redirectToApp();
+} else {
+console.log('AuthManager: No existing session');
+}
+}
+
 isUserAuthenticated() {
-return window.isAuthenticated();
+const session = this.getSession();
+return session && session.user;
 }
 
 getCurrentUser() {
-return CURRENT_USER;
+const session = this.getSession();
+return session ? session.user : null;
 }
 
 startSessionMonitoring() {
@@ -959,11 +799,109 @@ return false;
 }
 
 // Extend session if user is active
-if (CURRENT_USER && SESSION_EXPIRY) {
-SESSION_EXPIRY = Date.now() + this.SESSION_TIMEOUT;
+const session = this.getSession();
+if (session) {
+session.expires = Date.now() + this.SESSION_TIMEOUT;
+localStorage.setItem('lighting_app_session', JSON.stringify(session));
 }
 
 return true;
+}
+
+redirectToApp() {
+console.log('AuthManager: redirectToApp called');
+
+// Ensure DOM is ready
+if (document.readyState === 'loading') {
+console.log('AuthManager: DOM still loading, waiting...');
+setTimeout(() => this.redirectToApp(), 100);
+return;
+}
+
+console.log('AuthManager: Current elements status:');
+console.log('  login-section element:', document.getElementById('login-section'));
+console.log('  dashboard-section element:', document.getElementById('dashboard-section'));
+
+// Hide login section
+const loginSection = document.getElementById('login-section');
+if (loginSection) {
+loginSection.style.display = 'none';
+console.log('AuthManager: login-section hidden');
+} else {
+console.error('AuthManager: login-section element not found!');
+return;
+}
+
+// Show dashboard section
+const dashboardSection = document.getElementById('dashboard-section');
+if (dashboardSection) {
+dashboardSection.style.display = 'block';
+console.log('AuthManager: dashboard-section shown');
+} else {
+console.error('AuthManager: dashboard-section element not found!');
+return;
+}
+
+// Wait for appManager with more aggressive retry
+this.waitForAppManager();
+}
+
+waitForAppManager() {
+console.log('AuthManager: Waiting for appManager...');
+let attempts = 0;
+const maxAttempts = 20;
+
+const checkAppManager = () => {
+attempts++;
+console.log(`AuthManager: Attempt ${attempts}/${maxAttempts} - checking appManager`);
+
+if (window.appManager) {
+console.log('AuthManager: appManager found! Initializing...');
+window.appManager.initializeWithUser(this.getCurrentUser());
+console.log('AuthManager: App initialization complete');
+return;
+}
+
+if (attempts < maxAttempts) {
+setTimeout(checkAppManager, 200); // Wait 200ms between attempts
+} else {
+console.error('AuthManager: Failed to find appManager after maximum attempts');
+this.showAlert('Application initialization failed. Please refresh the page.', 'error');
+}
+};
+
+checkAppManager();
+}
+
+redirectToLogin() {
+console.log('AuthManager: redirectToLogin called');
+
+// Show login section
+const loginSection = document.getElementById('login-section');
+if (loginSection) {
+loginSection.style.display = 'flex';
+console.log('AuthManager: login-section shown');
+} else {
+console.error('AuthManager: login-section element not found!');
+}
+
+// Hide dashboard section
+const dashboardSection = document.getElementById('dashboard-section');
+if (dashboardSection) {
+dashboardSection.style.display = 'none';
+console.log('AuthManager: dashboard-section hidden');
+} else {
+console.error('AuthManager: dashboard-section element not found!');
+}
+
+// Clear form
+const loginForm = document.getElementById('login-form');
+if (loginForm) {
+loginForm.reset();
+console.log('AuthManager: login form reset');
+} else {
+console.error('AuthManager: login-form element not found!');
+}
 }
 
 showLoading(show) {
@@ -1006,7 +944,15 @@ alert.remove();
 function closeModal(modalId) {
 console.log('Global closeModal called for:', modalId);
 
-if (!window.requireAuth()) return;
+// If no modalId provided, close all modals
+if (!modalId) {
+const modals = document.querySelectorAll('.modal');
+modals.forEach(modal => {
+modal.style.display = 'none';
+console.log('Modal closed:', modal.id);
+});
+return;
+}
 
 const modal = document.getElementById(modalId);
 if (modal) {
@@ -1019,9 +965,6 @@ console.error('Modal not found:', modalId);
 
 function showAddModal() {
 console.log('Global showAddModal called');
-
-if (!window.requireAuth()) return;
-
 if (window.appManager) {
 window.appManager.showAddDataModal();
 } else {
@@ -1031,9 +974,6 @@ console.error('AppManager not found for showAddModal');
 
 function applyFilters() {
 console.log('Global applyFilters called');
-
-if (!window.requireAuth()) return;
-
 if (window.appManager) {
 window.appManager.applyFilters();
 } else {
@@ -1043,9 +983,6 @@ console.error('AppManager not found for applyFilters');
 
 function clearFilters() {
 console.log('Global clearFilters called');
-
-if (!window.requireAuth()) return;
-
 if (window.appManager) {
 window.appManager.clearFilters();
 } else {
@@ -1055,9 +992,6 @@ console.error('AppManager not found for clearFilters');
 
 function saveData() {
 console.log('Global saveData called');
-
-if (!window.requireAuth()) return;
-
 if (window.appManager) {
 const form = document.getElementById('data-form');
 if (form) {
@@ -1072,7 +1006,6 @@ console.error('AppManager not found for saveData');
 
 function logout() {
 console.log('Global logout called');
-
 if (window.authManager) {
 window.authManager.handleLogout();
 } else {
@@ -1082,9 +1015,6 @@ console.error('AuthManager not found for logout');
 
 function previousPage() {
 console.log('Global previousPage called');
-
-if (!window.requireAuth()) return;
-
 if (window.appManager) {
 const newPage = window.appManager.currentPage - 1;
 window.appManager.goToPage(newPage);
@@ -1095,9 +1025,6 @@ console.error('AppManager not found for previousPage');
 
 function nextPage() {
 console.log('Global nextPage called');
-
-if (!window.requireAuth()) return;
-
 if (window.appManager) {
 const newPage = window.appManager.currentPage + 1;
 window.appManager.goToPage(newPage);
@@ -1126,8 +1053,8 @@ console.log('AuthManager: AuthManager instance created:', window.authManager);
     
     <script>
 /**
-* Main Application Logic - AUTH ENFORCED VERSION
-* Requires authentication for all operations
+* Main Application Logic - FINAL CORRECTED VERSION
+* Fixed all element ID mismatch issues
 */
 
 class AppManager {
@@ -1143,13 +1070,6 @@ this.init();
 
 init() {
 console.log('AppManager: Initializing...');
-
-// CRITICAL: Check authentication before initializing
-if (!window.requireAuth()) {
-console.warn('AppManager: Authentication required - stopping initialization');
-return;
-}
-
 this.setupEventListeners();
 console.log('AppManager: Initialization complete');
 }
@@ -1193,13 +1113,6 @@ console.log('AppManager: Event listeners setup complete');
 
 initializeWithUser(user) {
 console.log('AppManager: Initializing with user:', user);
-
-// CRITICAL: Verify authentication
-if (!window.requireAuth()) {
-console.warn('AppManager: Authentication required for initialization');
-return;
-}
-
 this.currentUser = user;
 this.updateUserInterface();
 this.loadDashboard();
@@ -1216,12 +1129,6 @@ console.log('AppManager: User name updated:', userName.textContent);
 }
 
 async loadDashboard() {
-// CRITICAL: Check authentication before loading dashboard
-if (!window.requireAuth()) {
-console.warn('AppManager: Authentication required for dashboard');
-return;
-}
-
 try {
 this.showLoading(true);
 console.log('AppManager: Loading dashboard...');
@@ -1418,10 +1325,6 @@ locationFilter.appendChild(option);
 
 applyFilters() {
 console.log('AppManager: Applying filters...');
-
-// CRITICAL: Check authentication
-if (!window.requireAuth()) return;
-
 this.currentFilters = {
 status: document.getElementById('filter-status').value,
 location: document.getElementById('filter-location').value,
@@ -1439,9 +1342,6 @@ this.loadDashboard();
 clearFilters() {
 console.log('AppManager: Clearing filters...');
 
-// CRITICAL: Check authentication
-if (!window.requireAuth()) return;
-
 // Clear all filter inputs
 const filters = ['filter-status', 'filter-location', 'filter-date-from', 'filter-date-to'];
 filters.forEach(filterId => {
@@ -1458,10 +1358,6 @@ this.loadDashboard();
 
 showAddDataModal() {
 console.log('AppManager: Showing add data modal');
-
-// CRITICAL: Check authentication
-if (!window.requireAuth()) return;
-
 document.getElementById('modal-title').textContent = 'Tambah Data Baru';
 document.getElementById('data-form').reset();
 document.getElementById('edit-id').value = '';
@@ -1470,10 +1366,6 @@ this.showModal('data-modal');
 
 editData(id) {
 console.log('AppManager: Editing data with ID:', id);
-
-// CRITICAL: Check authentication
-if (!window.requireAuth()) return;
-
 const item = this.currentData.find(data => data.id == id);
 if (!item) {
 console.error('AppManager: Item not found for edit:', id);
@@ -1500,9 +1392,6 @@ async deleteData(id) {
 if (!confirm('Apakah Anda yakin ingin menghapus data ini?')) {
 return;
 }
-
-// CRITICAL: Check authentication
-if (!window.requireAuth()) return;
 
 try {
 this.showLoading(true);
@@ -1539,9 +1428,6 @@ async handleDataSubmit(event) {
 if (event && event.preventDefault) {
 event.preventDefault();
 }
-
-// CRITICAL: Check authentication
-if (!window.requireAuth()) return;
 
 const formData = new FormData(document.getElementById('data-form'));
 const data = Object.fromEntries(formData.entries());
@@ -1693,7 +1579,3 @@ console.log('AppManager: AppManager instance created:', window.appManager);
     </script>
 </body>
 </html>
-
-
-
-
