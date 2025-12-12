@@ -1,5 +1,6 @@
 /**
-* Main Application Logic - COMPLETE FIX VERSION
+* Main Application Logic - CORRECTED VERSION
+* Fixed element ID mismatch and HTML structure compatibility
 */
 
 class AppManager {
@@ -14,106 +15,68 @@ this.init();
 }
 
 init() {
+console.log('AppManager: Initializing...');
 this.setupEventListeners();
+console.log('AppManager: Initialization complete');
 }
 
 setupEventListeners() {
-// Dashboard actions
-const refreshBtn = document.getElementById('refresh-data-btn');
-const exportPdfBtn = document.getElementById('export-pdf-btn');
+console.log('AppManager: Setting up event listeners...');
 
-if (refreshBtn) {
-refreshBtn.addEventListener('click', () => this.loadDashboard());
-}
-
-if (exportPdfBtn) {
-exportPdfBtn.addEventListener('click', () => this.exportToPDF());
-}
-
-// Data management
-const addDataBtn = document.getElementById('add-data-btn');
+// CORRECTED: Use proper selectors that match HTML structure
 const dataForm = document.getElementById('data-form');
-const applyFiltersBtn = document.getElementById('apply-filters-btn');
-const clearFiltersBtn = document.getElementById('clear-filters-btn');
 
-if (addDataBtn) {
-addDataBtn.addEventListener('click', () => this.showAddDataModal());
-}
-
+// Add data form submit handler
 if (dataForm) {
 dataForm.addEventListener('submit', (e) => this.handleDataSubmit(e));
+console.log('AppManager: Data form event listener added');
+} else {
+console.warn('AppManager: Data form not found');
 }
 
-if (applyFiltersBtn) {
-applyFiltersBtn.addEventListener('click', () => this.applyFilters());
+// Setup filter event listeners
+const filterElements = ['filter-status', 'filter-location', 'filter-date-from', 'filter-date-to'];
+filterElements.forEach(id => {
+const element = document.getElementById(id);
+if (element) {
+element.addEventListener('change', () => this.applyFilters());
 }
+console.log(`AppManager: Filter element ${id} setup`);
+});
 
-if (clearFiltersBtn) {
-clearFiltersBtn.addEventListener('click', () => this.clearFilters());
-}
-
-// Modal close - FIXED: Use proper event listeners instead of onclick
-const closeButtons = document.querySelectorAll('.close');
-closeButtons.forEach(btn => {
-btn.addEventListener('click', (e) => {
+// Setup modal close handlers using event delegation
+document.addEventListener('click', (e) => {
+if (e.target.classList.contains('close') || e.target.closest('.close')) {
 const modal = e.target.closest('.modal');
 if (modal) {
 this.closeModal(modal.id);
 }
-});
-});
-
-// Click outside modal to close
-document.addEventListener('click', (e) => {
-if (e.target.classList.contains('modal')) {
-this.closeModal(e.target.id);
 }
 });
 
-// Pagination controls
-this.setupPaginationControls();
-}
-
-setupPaginationControls() {
-// Create pagination container if it doesn't exist
-let paginationContainer = document.getElementById('pagination-container');
-if (!paginationContainer) {
-paginationContainer = document.createElement('div');
-paginationContainer.id = 'pagination-container';
-paginationContainer.className = 'pagination-container';
-
-// Find table container and append pagination after it
-const tableContainer = document.querySelector('.table-container');
-if (tableContainer) {
-tableContainer.parentNode.insertBefore(paginationContainer, tableContainer.nextSibling);
-}
-}
+console.log('AppManager: Event listeners setup complete');
 }
 
 initializeWithUser(user) {
+console.log('AppManager: Initializing with user:', user);
 this.currentUser = user;
 this.updateUserInterface();
 this.loadDashboard();
 }
 
 updateUserInterface() {
+console.log('AppManager: Updating user interface...');
 const userName = document.getElementById('user-name');
-const userRole = document.getElementById('user-role');
 
 if (userName && this.currentUser) {
-userName.textContent = this.currentUser.full_name || this.currentUser.username;
-}
-
-if (userRole && this.currentUser) {
-userRole.textContent = this.currentUser.role;
-userRole.className = `role-badge role-${this.currentUser.role.toLowerCase()}`;
+userName.textContent = this.currentUser.full_name || this.currentUser.username || 'User';
+console.log('AppManager: User name updated:', userName.textContent);
 }
 }
 
 async loadDashboard() {
 try {
 this.showLoading(true);
-
 console.log('AppManager: Loading dashboard...');
 
 const response = await this.makeAPICall('POST', {
@@ -134,47 +97,65 @@ this.updatePagination();
 console.log('AppManager: Dashboard updated successfully');
 } else {
 console.error('AppManager: Failed to load data:', response.message);
+if (window.authManager) {
 window.authManager.showAlert(response.message || 'Failed to load data', 'error');
+}
 }
 } catch (error) {
 console.error('AppManager: Dashboard load error:', error);
+if (window.authManager) {
 window.authManager.showAlert('Failed to load dashboard: ' + error.message, 'error');
+}
 } finally {
 this.showLoading(false);
 }
 }
 
 updateDashboard() {
-console.log('AppManager: Updating dashboard...');
+console.log('AppManager: Updating dashboard stats...');
+
+// CORRECTED: Use elements that actually exist in HTML
+const totalDevices = document.getElementById('total-devices');
+const activeDevices = document.getElementById('active-devices');
+const warningDevices = document.getElementById('warning-devices');
+const averageUsage = document.getElementById('average-usage');
+
 const stats = this.calculateStats();
 
-document.getElementById('total-fittings').textContent = stats.totalFittings;
-document.getElementById('completed-installations').textContent = stats.completed;
-document.getElementById('in-progress').textContent = stats.inProgress;
-document.getElementById('total-wattage').textContent = stats.totalWattage;
+if (totalDevices) totalDevices.textContent = stats.totalDevices;
+if (activeDevices) activeDevices.textContent = stats.activeDevices;
+if (warningDevices) warningDevices.textContent = stats.warningDevices;
+if (averageUsage) averageUsage.textContent = stats.averageUsage + '%';
 
-console.log('AppManager: Dashboard updated with stats:', stats);
+console.log('AppManager: Dashboard stats updated:', stats);
 }
 
 calculateStats() {
 const data = this.currentData;
 
-const totalFittings = data.reduce((sum, item) => sum + (parseInt(item.qty) || 0), 0);
-const completed = data.filter(item => item.status === 'Completed').length;
-const inProgress = data.filter(item => item.status === 'In Progress').length;
-const totalWattage = data.reduce((sum, item) => sum + ((parseInt(item.qty) || 0) * (parseInt(item.watt) || 0)), 0);
+// Calculate stats based on available data
+const totalDevices = data.length;
+const activeDevices = data.filter(item => 
+item.status && item.status.toLowerCase() === 'active'
+).length;
+const warningDevices = data.filter(item => 
+item.status && (item.status.toLowerCase() === 'maintenance' || item.status.toLowerCase() === 'inactive')
+).length;
+
+// Calculate average usage (mock calculation)
+const averageUsage = totalDevices > 0 ? Math.round((activeDevices / totalDevices) * 100) : 0;
 
 return {
-totalFittings,
-completed,
-inProgress,
-totalWattage
+totalDevices,
+activeDevices,
+warningDevices,
+averageUsage
 };
 }
 
 updateDataTable() {
 console.log('AppManager: Updating data table...');
-const tbody = document.getElementById('data-table-body');
+const tbody = document.querySelector('#data-table tbody');
 if (!tbody) {
 console.error('AppManager: Data table body not found');
 return;
@@ -186,9 +167,9 @@ if (this.currentData.length === 0) {
 console.log('AppManager: No data to display');
 const emptyRow = document.createElement('tr');
 emptyRow.innerHTML = `
-<td colspan="11" style="text-align: center; padding: 2rem; color: #6b7280;">
+<td colspan="7" style="text-align: center; padding: 2rem; color: #6b7280;">
 <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i>
-No data available. Click "Add New Data" to get started.
+Belum ada data. Klik "Tambah Data Baru" untuk mulai.
 </td>
 `;
 tbody.appendChild(emptyRow);
@@ -205,16 +186,12 @@ console.log(`AppManager: Showing page ${this.currentPage}, items ${startIndex}-$
 paginatedData.forEach(item => {
 const row = document.createElement('tr');
 row.innerHTML = `
-<td>${this.escapeHtml(item.floor || item.lantai || '')}</td>
-<td>${this.escapeHtml(item.area || '')}</td>
-<td>${this.escapeHtml(item.room || '')}</td>
-<td>${this.escapeHtml(item.fitting_ref || item.ref_fitting || '')}</td>
-<td>${this.escapeHtml(item.type || '')}</td>
-<td>${item.qty || 0}</td>
-<td>${item.watt || 0}</td>
-<td><span class="status-badge status-${(item.status || '').toLowerCase().replace(' ', '-')}">${item.status || ''}</span></td>
-<td>${this.formatDate(item.order_date || item.tgl_order)}</td>
-<td>${this.formatDate(item.completion_date || item.tgl_selesai)}</td>
+<td>${this.escapeHtml(item.id || '')}</td>
+<td>${this.escapeHtml(item.device_name || item.nama_perangkat || '')}</td>
+<td>${this.escapeHtml(item.location || item.lokasi || '')}</td>
+<td><span class="status-badge status-${(item.status || '').toLowerCase()}">${this.escapeHtml(item.status || '')}</span></td>
+<td>${item.power_consumption || item.konsumsi_daya || 0} W</td>
+<td>${this.formatDate(item.last_updated || item.terakhir_diperbarui)}</td>
 <td class="actions">
 <button class="btn btn-sm btn-secondary" onclick="window.appManager.editData('${item.id}')" title="Edit">
 <i class="fas fa-edit"></i>
@@ -232,32 +209,24 @@ console.log('AppManager: Data table updated with', paginatedData.length, 'rows f
 
 updatePagination() {
 console.log('AppManager: Updating pagination...');
-const paginationContainer = document.getElementById('pagination-container');
-if (!paginationContainer) return;
 
 const totalPages = Math.ceil(this.currentData.length / this.itemsPerPage);
 const currentPage = this.currentPage;
 
-let paginationHTML = `
-<div class="pagination-info">
-Showing ${Math.min((currentPage - 1) * this.itemsPerPage + 1, this.currentData.length)} to ${Math.min(currentPage * this.itemsPerPage, this.currentData.length)} of ${this.currentData.length} entries
-</div>
-<div class="pagination-controls">
-`;
+// Update pagination info elements
+const pageStart = document.getElementById('page-start');
+const pageEnd = document.getElementById('page-end');
+const totalRecords = document.getElementById('total-records');
+const currentPageSpan = document.getElementById('current-page');
+const totalPagesSpan = document.getElementById('total-pages');
 
-if (currentPage > 1) {
-paginationHTML += `<button class="btn btn-sm btn-secondary" onclick="window.appManager.goToPage(${currentPage - 1})">Previous</button>`;
-}
+if (pageStart) pageStart.textContent = Math.min((currentPage - 1) * this.itemsPerPage + 1, this.currentData.length);
+if (pageEnd) pageEnd.textContent = Math.min(currentPage * this.itemsPerPage, this.currentData.length);
+if (totalRecords) totalRecords.textContent = this.currentData.length;
+if (currentPageSpan) currentPageSpan.textContent = currentPage;
+if (totalPagesSpan) totalPagesSpan.textContent = totalPages;
 
-paginationHTML += `<span class="pagination-page">Page ${currentPage} of ${totalPages}</span>`;
-
-if (currentPage < totalPages) {
-paginationHTML += `<button class="btn btn-sm btn-secondary" onclick="window.appManager.goToPage(${currentPage + 1})">Next</button>`;
-}
-
-paginationHTML += '</div>';
-
-paginationContainer.innerHTML = paginationHTML;
+console.log(`AppManager: Pagination updated - Page ${currentPage} of ${totalPages}`);
 }
 
 goToPage(page) {
@@ -266,32 +235,47 @@ if (page >= 1 && page <= totalPages) {
 this.currentPage = page;
 this.updateDataTable();
 this.updatePagination();
+console.log('AppManager: Navigated to page', page);
 }
 }
 
 populateFilters() {
-const floorFilter = document.getElementById('floor-filter');
-if (!floorFilter) return;
+console.log('AppManager: Populating filters...');
 
-const floors = [...new Set(this.currentData.map(item => item.floor || item.lantai).filter(Boolean))];
-
-// Clear existing options except "All"
-floorFilter.innerHTML = '<option value="">All Floors</option>';
-
-floors.forEach(floor => {
+// Populate status filter
+const statusFilter = document.getElementById('filter-status');
+if (statusFilter) {
+const statuses = [...new Set(this.currentData.map(item => item.status).filter(Boolean))];
+statusFilter.innerHTML = '<option value="">Semua Status</option>';
+statuses.forEach(status => {
 const option = document.createElement('option');
-option.value = floor;
-option.textContent = floor;
-floorFilter.appendChild(option);
+option.value = status;
+option.textContent = status;
+statusFilter.appendChild(option);
 });
+}
+
+// Populate location filter
+const locationFilter = document.getElementById('filter-location');
+if (locationFilter) {
+const locations = [...new Set(this.currentData.map(item => item.location || item.lokasi).filter(Boolean))];
+locationFilter.innerHTML = '<option value="">Semua Lokasi</option>';
+locations.forEach(location => {
+const option = document.createElement('option');
+option.value = location;
+option.textContent = location;
+locationFilter.appendChild(option);
+});
+}
 }
 
 applyFilters() {
 console.log('AppManager: Applying filters...');
 this.currentFilters = {
-floor: document.getElementById('floor-filter').value,
-status: document.getElementById('status-filter').value,
-search: document.getElementById('search-filter').value
+status: document.getElementById('filter-status').value,
+location: document.getElementById('filter-location').value,
+dateFrom: document.getElementById('filter-date-from').value,
+dateTo: document.getElementById('filter-date-to').value
 };
 
 console.log('AppManager: Current filters:', this.currentFilters);
@@ -303,9 +287,16 @@ this.loadDashboard();
 
 clearFilters() {
 console.log('AppManager: Clearing filters...');
-document.getElementById('floor-filter').value = '';
-document.getElementById('status-filter').value = '';
-document.getElementById('search-filter').value = '';
+
+// Clear all filter inputs
+const filters = ['filter-status', 'filter-location', 'filter-date-from', 'filter-date-to'];
+filters.forEach(filterId => {
+const element = document.getElementById(filterId);
+if (element) {
+element.value = '';
+}
+});
+
 this.currentFilters = {};
 this.currentPage = 1;
 this.loadDashboard();
@@ -313,47 +304,43 @@ this.loadDashboard();
 
 showAddDataModal() {
 console.log('AppManager: Showing add data modal');
-document.getElementById('modal-title').textContent = 'Add New Data';
+document.getElementById('modal-title').textContent = 'Tambah Data Baru';
 document.getElementById('data-form').reset();
-document.getElementById('record-id').value = '';
+document.getElementById('edit-id').value = '';
 this.showModal('data-modal');
 }
 
 editData(id) {
-const item = this.currentData.find(data => data.id == id); // Use == for type coercion
+console.log('AppManager: Editing data with ID:', id);
+const item = this.currentData.find(data => data.id == id);
 if (!item) {
 console.error('AppManager: Item not found for edit:', id);
-window.authManager.showAlert('Item not found', 'error');
+if (window.authManager) {
+window.authManager.showAlert('Data tidak ditemukan', 'error');
+}
 return;
 }
 
 console.log('AppManager: Editing item:', item);
 document.getElementById('modal-title').textContent = 'Edit Data';
-document.getElementById('record-id').value = item.id;
+document.getElementById('edit-id').value = item.id;
 
-// Populate form fields
-document.getElementById('floor').value = item.floor || item.lantai || '';
-document.getElementById('area').value = item.area || '';
-document.getElementById('room').value = item.room || '';
-document.getElementById('fitting_ref').value = item.fitting_ref || item.ref_fitting || '';
-document.getElementById('type').value = item.type || '';
-document.getElementById('qty').value = item.qty || '';
-document.getElementById('watt').value = item.watt || '';
-document.getElementById('status').value = item.status || 'Pending';
-document.getElementById('order_date').value = this.formatDateForInput(item.order_date || item.tgl_order);
-document.getElementById('completion_date').value = this.formatDateForInput(item.completion_date || item.tgl_selesai);
+// Populate form fields - CORRECTED to match HTML structure
+document.getElementById('device-name').value = item.device_name || item.nama_perangkat || '';
+document.getElementById('device-location').value = item.location || item.lokasi || '';
+document.getElementById('device-status').value = item.status || '';
+document.getElementById('power-consumption').value = item.power_consumption || item.konsumsi_daya || '';
 
 this.showModal('data-modal');
 }
 
 async deleteData(id) {
-if (!confirm('Are you sure you want to delete this data?')) {
+if (!confirm('Apakah Anda yakin ingin menghapus data ini?')) {
 return;
 }
 
 try {
 this.showLoading(true);
-
 console.log('AppManager: Deleting data with ID:', id);
 
 const response = await this.makeAPICall('POST', {
@@ -364,45 +351,54 @@ record_id: id
 console.log('AppManager: Delete response:', response);
 
 if (response.success === true) {
-window.authManager.showAlert('Data deleted successfully', 'success');
+if (window.authManager) {
+window.authManager.showAlert('Data berhasil dihapus', 'success');
+}
 this.loadDashboard();
 } else {
-window.authManager.showAlert(response.message || 'Failed to delete data', 'error');
+if (window.authManager) {
+window.authManager.showAlert(response.message || 'Gagal menghapus data', 'error');
+}
 }
 } catch (error) {
 console.error('AppManager: Delete error:', error);
-window.authManager.showAlert('Failed to delete data: ' + error.message, 'error');
+if (window.authManager) {
+window.authManager.showAlert('Gagal menghapus data: ' + error.message, 'error');
+}
 } finally {
 this.showLoading(false);
 }
 }
 
 async handleDataSubmit(event) {
+if (event && event.preventDefault) {
 event.preventDefault();
+}
 
-const formData = new FormData(event.target);
+const formData = new FormData(document.getElementById('data-form'));
 const data = Object.fromEntries(formData.entries());
 
 console.log('AppManager: Form data submitted:', data);
 
 // Validate required fields
-const requiredFields = ['floor', 'fitting_ref', 'qty', 'watt'];
+const requiredFields = ['deviceName', 'location', 'status', 'powerConsumption'];
 for (let field of requiredFields) {
 if (!data[field] || data[field].trim() === '') {
-window.authManager.showAlert(`Field '${field}' is required`, 'error');
+if (window.authManager) {
+window.authManager.showAlert(`Field '${field}' wajib diisi`, 'error');
+}
 return;
 }
 }
 
-// FIXED: Always use 'addData' action (not 'addLightingData')
-const action = data.record_id ? 'updateData' : 'addData';
-if (data.record_id) {
-delete data.record_id;
+// FIXED: Always use correct action names
+const action = data.editId ? 'updateData' : 'addData';
+if (data.editId) {
+delete data.editId;
 }
 
 try {
 this.showLoading(true);
-
 console.log('AppManager: Submitting data with action:', action);
 
 const response = await this.makeAPICall('POST', {
@@ -413,42 +409,22 @@ data: data
 console.log('AppManager: Submit response:', response);
 
 if (response.success === true) {
-const message = data.record_id ? 'Data updated successfully' : 'Data added successfully';
+const message = data.editId ? 'Data berhasil diperbarui' : 'Data berhasil ditambahkan';
+if (window.authManager) {
 window.authManager.showAlert(message, 'success');
+}
 this.closeModal('data-modal');
 this.loadDashboard();
 } else {
-window.authManager.showAlert(response.message || 'Failed to save data', 'error');
+if (window.authManager) {
+window.authManager.showAlert(response.message || 'Gagal menyimpan data', 'error');
+}
 }
 } catch (error) {
 console.error('AppManager: Save error:', error);
-window.authManager.showAlert('Failed to save data: ' + error.message, 'error');
-} finally {
-this.showLoading(false);
+if (window.authManager) {
+window.authManager.showAlert('Gagal menyimpan data: ' + error.message, 'error');
 }
-}
-
-async exportToPDF() {
-try {
-this.showLoading(true);
-
-console.log('AppManager: Exporting PDF...');
-
-const response = await this.makeAPICall('POST', {
-action: 'exportPDF',
-filters: this.currentFilters
-});
-
-console.log('AppManager: PDF export response:', response);
-
-if (response.success === true) {
-window.authManager.showAlert('PDF report generated successfully', 'success');
-} else {
-window.authManager.showAlert(response.message || 'Failed to generate PDF', 'error');
-}
-} catch (error) {
-console.error('AppManager: PDF export error:', error);
-window.authManager.showAlert('Failed to generate PDF: ' + error.message, 'error');
 } finally {
 this.showLoading(false);
 }
@@ -527,17 +503,8 @@ return dateString;
 }
 }
 
-formatDateForInput(dateString) {
-if (!dateString) return '';
-try {
-const date = new Date(dateString);
-return date.toISOString().split('T')[0];
-} catch (error) {
-return '';
-}
-}
-
 escapeHtml(text) {
+if (!text) return '';
 const map = {
 '&': '&amp;',
 '<': '&lt;',
@@ -551,6 +518,7 @@ return text.replace(/[&<>"']/g, (m) => map[m]);
 
 // Initialize app manager when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
+console.log('AppManager: DOM loaded, initializing AppManager');
 window.appManager = new AppManager();
 console.log('AppManager: AppManager instance created:', window.appManager);
 });
