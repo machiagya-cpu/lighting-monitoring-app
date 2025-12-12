@@ -1,5 +1,6 @@
 /**
-* Authentication and Session Management - SECURITY FIXED VERSION
+* Authentication and Session Management - CORRECTED VERSION
+* Fixed element ID mismatch between HTML and JavaScript
 */
 
 class AuthManager {
@@ -37,15 +38,18 @@ this.clearSession();
 this.forceShowLogin();
 } else {
 console.log('AuthManager: Valid session, allowing dashboard access');
-// Session is valid, allow dashboard
+// Session is valid, allow dashboard - DO NOT redirect automatically
+// Let user decide or wait for manual interaction
 }
 }
 }
 
 forceShowLogin() {
 console.log('AuthManager: Force showing login page...');
+
+// CORRECTED: Use the actual elements from HTML
 const loginSection = document.getElementById('login-section');
-const mainApp = document.getElementById('main-app');
+const dashboardSection = document.getElementById('dashboard-section');
 
 if (loginSection) {
 loginSection.style.display = 'flex';
@@ -54,17 +58,17 @@ console.log('AuthManager: Login section shown');
 console.error('AuthManager: Login section not found!');
 }
 
-if (mainApp) {
-mainApp.style.display = 'none';
-console.log('AuthManager: Main app hidden');
+if (dashboardSection) {
+dashboardSection.style.display = 'none';
+console.log('AuthManager: Dashboard section hidden');
 } else {
-console.error('AuthManager: Main app not found!');
+console.error('AuthManager: Dashboard section not found!');
 }
 }
 
 setupEventListeners() {
 const loginForm = document.getElementById('login-form');
-const logoutBtn = document.getElementById('logout-btn');
+const logoutBtn = document.querySelector('button[onclick="logout()"]');
 
 if (loginForm) {
 loginForm.addEventListener('submit', (e) => this.handleLogin(e));
@@ -270,7 +274,7 @@ return;
 
 console.log('AuthManager: Current elements status:');
 console.log('  login-section element:', document.getElementById('login-section'));
-console.log('  main-app element:', document.getElementById('main-app'));
+console.log('  dashboard-section element:', document.getElementById('dashboard-section'));
 
 // Hide login section
 const loginSection = document.getElementById('login-section');
@@ -282,13 +286,13 @@ console.error('AuthManager: login-section element not found!');
 return;
 }
 
-// Show main app
-const mainApp = document.getElementById('main-app');
-if (mainApp) {
-mainApp.style.display = 'block';
-console.log('AuthManager: main-app shown');
+// Show dashboard section
+const dashboardSection = document.getElementById('dashboard-section');
+if (dashboardSection) {
+dashboardSection.style.display = 'block';
+console.log('AuthManager: dashboard-section shown');
 } else {
-console.error('AuthManager: main-app element not found!');
+console.error('AuthManager: dashboard-section element not found!');
 return;
 }
 
@@ -335,13 +339,13 @@ console.log('AuthManager: login-section shown');
 console.error('AuthManager: login-section element not found!');
 }
 
-// Hide main app
-const mainApp = document.getElementById('main-app');
-if (mainApp) {
-mainApp.style.display = 'none';
-console.log('AuthManager: main-app hidden');
+// Hide dashboard section
+const dashboardSection = document.getElementById('dashboard-section');
+if (dashboardSection) {
+dashboardSection.style.display = 'none';
+console.log('AuthManager: dashboard-section hidden');
 } else {
-console.error('AuthManager: main-app element not found!');
+console.error('AuthManager: dashboard-section element not found!');
 }
 
 // Clear form
@@ -390,20 +394,109 @@ alert.remove();
 }
 }
 
-// FIXED: Add global closeModal function
+// FIXED: Add global closeModal function for global access
 function closeModal(modalId) {
 console.log('Global closeModal called for:', modalId);
+
+// If no modalId provided, close all modals
+if (!modalId) {
+const modals = document.querySelectorAll('.modal');
+modals.forEach(modal => {
+modal.style.display = 'none';
+console.log('Modal closed:', modal.id);
+});
+return;
+}
+
 const modal = document.getElementById(modalId);
 if (modal) {
 modal.style.display = 'none';
-console.log('Modal closed successfully');
+console.log('Modal closed successfully:', modalId);
 } else {
 console.error('Modal not found:', modalId);
 }
 }
 
-// Make closeModal globally available
+// FIXED: Add global functions for button onclick handlers
+function showAddModal() {
+console.log('Global showAddModal called');
+if (window.appManager) {
+window.appManager.showAddDataModal();
+} else {
+console.error('AppManager not found for showAddModal');
+}
+}
+
+function applyFilters() {
+console.log('Global applyFilters called');
+if (window.appManager) {
+window.appManager.applyFilters();
+} else {
+console.error('AppManager not found for applyFilters');
+}
+}
+
+function clearFilters() {
+console.log('Global clearFilters called');
+if (window.appManager) {
+window.appManager.clearFilters();
+} else {
+console.error('AppManager not found for clearFilters');
+}
+}
+
+function saveData() {
+console.log('Global saveData called');
+if (window.appManager) {
+const form = document.getElementById('data-form');
+if (form) {
+window.appManager.handleDataSubmit({ preventDefault: () => {} });
+} else {
+console.error('Data form not found for saveData');
+}
+} else {
+console.error('AppManager not found for saveData');
+}
+}
+
+function logout() {
+console.log('Global logout called');
+if (window.authManager) {
+window.authManager.handleLogout();
+} else {
+console.error('AuthManager not found for logout');
+}
+}
+
+function previousPage() {
+console.log('Global previousPage called');
+if (window.appManager) {
+const newPage = window.appManager.currentPage - 1;
+window.appManager.goToPage(newPage);
+} else {
+console.error('AppManager not found for previousPage');
+}
+}
+
+function nextPage() {
+console.log('Global nextPage called');
+if (window.appManager) {
+const newPage = window.appManager.currentPage + 1;
+window.appManager.goToPage(newPage);
+} else {
+console.error('AppManager not found for nextPage');
+}
+}
+
+// Make all functions globally available
 window.closeModal = closeModal;
+window.showAddModal = showAddModal;
+window.applyFilters = applyFilters;
+window.clearFilters = clearFilters;
+window.saveData = saveData;
+window.logout = logout;
+window.previousPage = previousPage;
+window.nextPage = nextPage;
 
 // Initialize auth manager when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
