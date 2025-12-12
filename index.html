@@ -1,1 +1,1696 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lighting Monitoring Dashboard</title>
+    
+    <!-- External Resources -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- GitHub Pages Compatible CSS Path -->
+    <link rel="stylesheet" href="./css/style.css">
+    
+    <style>
+        /* Fallback CSS untuk GitHub Pages - akan digunakan jika style.css gagal dimuat */
+        .fallback-notice {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #ef4444;
+            color: white;
+            text-align: center;
+            padding: 1rem;
+            font-weight: bold;
+            z-index: 9999;
+        }
+        
+        body {
+            font-family: 'Inter', Arial, sans-serif !important;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            margin: 0 !important;
+            padding: 20px !important;
+        }
+
+        #app {
+            max-width: 1400px !important;
+            margin: 0 auto !important;
+            background: white !important;
+            border-radius: 8px !important;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1) !important;
+            overflow: hidden !important;
+            min-height: calc(100vh - 40px) !important;
+        }
+
+        .login-container {
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            min-height: 100vh !important;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            padding: 2rem !important;
+        }
+
+        .login-box {
+            background: white !important;
+            padding: 3rem !important;
+            border-radius: 8px !important;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1) !important;
+            width: 100% !important;
+            max-width: 450px !important;
+        }
+
+        .btn {
+            padding: 1rem 2rem !important;
+            border: none !important;
+            border-radius: 8px !important;
+            font-size: 1rem !important;
+            font-weight: 600 !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease-in-out !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 0.75rem !important;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2563eb, #3b82f6) !important;
+            color: white !important;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #1d4ed8, #1e40af) !important;
+            transform: translateY(-2px) !important;
+        }
+
+        .btn-secondary {
+            background: white !important;
+            color: #64748b !important;
+            border: 2px solid #e2e8f0 !important;
+        }
+
+        .btn-secondary:hover {
+            background: #f8fafc !important;
+            border-color: #2563eb !important;
+            color: #2563eb !important;
+        }
+
+        .form-group {
+            margin-bottom: 1.75rem !important;
+        }
+
+        .form-group input {
+            width: 100% !important;
+            padding: 1rem !important;
+            border: 2px solid #e2e8f0 !important;
+            border-radius: 8px !important;
+            font-size: 1rem !important;
+        }
+
+        .form-group input:focus {
+            border-color: #2563eb !important;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1) !important;
+            outline: none !important;
+        }
+
+        .stats-grid {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+            gap: 2rem !important;
+            margin-bottom: 3rem !important;
+        }
+
+        .stat-card {
+            background: white !important;
+            border-radius: 8px !important;
+            padding: 2rem !important;
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
+            transition: all 0.2s ease-in-out !important;
+            position: relative !important;
+            border: 1px solid #e2e8f0 !important;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px) scale(1.02) !important;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1) !important;
+        }
+
+        .table-container {
+            background: white !important;
+            border-radius: 8px !important;
+            overflow: hidden !important;
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
+            border: 1px solid #e2e8f0 !important;
+        }
+
+        #data-table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+            font-size: 0.875rem !important;
+        }
+
+        #data-table thead th {
+            background: #f8fafc !important;
+            color: #1e293b !important;
+            font-weight: 800 !important;
+            padding: 1.25rem 1rem !important;
+            text-align: left !important;
+            border-bottom: 2px solid #e2e8f0 !important;
+        }
+
+        #data-table tbody tr:hover {
+            background: rgba(59, 130, 246, 0.02) !important;
+            transform: scale(1.005) !important;
+        }
+
+        #data-table tbody td {
+            padding: 1.25rem 1rem !important;
+            vertical-align: middle !important;
+            font-weight: 500 !important;
+        }
+
+        .modal {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            background: rgba(0, 0, 0, 0.6) !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            z-index: 1000 !important;
+            backdrop-filter: blur(8px) !important;
+        }
+
+        .modal-content {
+            background: white !important;
+            border-radius: 8px !important;
+            max-width: 700px !important;
+            width: 90% !important;
+            max-height: 90vh !important;
+            overflow-y: auto !important;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1) !important;
+        }
+
+        .app-header {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%) !important;
+            color: white !important;
+            padding: 2rem !important;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1) !important;
+        }
+
+        .dashboard-section {
+            padding: 2.5rem !important;
+            background: #f8fafc !important;
+        }
+
+        .data-section {
+            padding: 2.5rem !important;
+            background: white !important;
+        }
+
+        .filters-container {
+            background: #f8fafc !important;
+            border-radius: 8px !important;
+            padding: 2rem !important;
+            margin-bottom: 2rem !important;
+            border: 1px solid #e2e8f0 !important;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr !important;
+            }
+            
+            .dashboard-section,
+            .data-section {
+                padding: 1.5rem !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Fallback Notice untuk CSS Loading Issues -->
+    <div class="fallback-notice" id="fallback-notice">
+        <i class="fas fa-exclamation-triangle"></i>
+        Styling tidak termuat - Pastikan file CSS tersedia di GitHub Pages
+    </div>
+
+    <!-- Main App Container -->
+    <div id="app">
+        <!-- Login Section -->
+        <section id="login-section" class="login-container" style="display: none;">
+            <div class="login-box">
+                <div class="login-header">
+                    <h1>
+                        <i class="fas fa-lightbulb"></i>
+                        Lighting Monitoring
+                    </h1>
+                    <p>Sistem monitoring pencahayaan pintar</p>
+                </div>
+                
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="username" name="username" placeholder="Masukkan username" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="password" name="password" placeholder="Masukkan password" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Masuk
+                    </button>
+                </form>
+                
+                <div class="demo-credentials">
+                    <h4>Demo Credentials</h4>
+                    <p><strong>Username:</strong> admin</p>
+                    <p><strong>Password:</strong> password123</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dashboard Section -->
+        <section id="dashboard-section" class="dashboard-section" style="display: none;">
+            <!-- Header -->
+            <header class="app-header">
+                <div class="header-content">
+                    <h1>
+                        <i class="fas fa-lightbulb"></i>
+                        Lighting Monitoring Dashboard
+                    </h1>
+                    <div class="user-info">
+                        <span id="user-name">Admin User</span>
+                        <span class="role-badge">Administrator</span>
+                        <button class="btn btn-secondary btn-sm" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Keluar
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Stats -->
+            <section class="dashboard-section">
+                <div class="dashboard-header">
+                    <h2>
+                        <i class="fas fa-chart-line"></i>
+                        Ringkasan Dashboard
+                    </h2>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="total-devices">0</h3>
+                            <p>Total Perangkat</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="active-devices">0</h3>
+                            <p>Perangkat Aktif</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="warning-devices">0</h3>
+                            <p>Peringatan</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="average-usage">0%</h3>
+                            <p>Rata-rata Penggunaan</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Data Management Section -->
+            <section class="data-section">
+                <div class="section-header">
+                    <h2>
+                        <i class="fas fa-database"></i>
+                        Manajemen Data
+                    </h2>
+                    <div class="dashboard-actions">
+                        <button class="btn btn-primary" onclick="showAddModal()">
+                            <i class="fas fa-plus"></i>
+                            Tambah Data Baru
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="filters-container">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label for="filter-status">Status</label>
+                            <select id="filter-status">
+                                <option value="">Semua Status</option>
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                                <option value="Maintenance">Maintenance</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label for="filter-location">Lokasi</label>
+                            <select id="filter-location">
+                                <option value="">Semua Lokasi</option>
+                                <option value="Office">Office</option>
+                                <option value="Warehouse">Warehouse</option>
+                                <option value="Outdoor">Outdoor</option>
+                                <option value="Corridor">Corridor</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label for="filter-date-from">Tanggal Dari</label>
+                            <input type="date" id="filter-date-from">
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label for="filter-date-to">Tanggal Sampai</label>
+                            <input type="date" id="filter-date-to">
+                        </div>
+                        
+                        <div class="filter-actions">
+                            <button class="btn btn-primary" onclick="applyFilters()">
+                                <i class="fas fa-filter"></i>
+                                Filter
+                            </button>
+                            <button class="btn btn-secondary" onclick="clearFilters()">
+                                <i class="fas fa-times"></i>
+                                Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Table -->
+                <div class="table-container">
+                    <table id="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nama Perangkat</th>
+                                <th>Lokasi</th>
+                                <th>Status</th>
+                                <th>Konsumsi Daya</th>
+                                <th>Terakhir Diperbarui</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination-container">
+                    <div class="pagination-info">
+                        Menampilkan <span id="page-start">1</span>-<span id="page-end">10</span> 
+                        dari <span id="total-records">0</span> data
+                    </div>
+                    <div class="pagination-controls">
+                        <button class="btn btn-secondary btn-sm" onclick="previousPage()">
+                            <i class="fas fa-chevron-left"></i>
+                            Sebelumnya
+                        </button>
+                        <span class="pagination-page">
+                            Halaman <span id="current-page">1</span> dari <span id="total-pages">1</span>
+                        </span>
+                        <button class="btn btn-secondary btn-sm" onclick="nextPage()">
+                            Selanjutnya
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </section>
+    </div>
+
+    <!-- Add/Edit Data Modal -->
+    <div id="data-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Tambah Data Baru</h3>
+                <button class="close" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="data-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="device-name">Nama Perangkat</label>
+                            <input type="text" id="device-name" name="deviceName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="device-location">Lokasi</label>
+                            <select id="device-location" name="location" required>
+                                <option value="">Pilih Lokasi</option>
+                                <option value="Office">Office</option>
+                                <option value="Warehouse">Warehouse</option>
+                                <option value="Outdoor">Outdoor</option>
+                                <option value="Corridor">Corridor</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="device-status">Status</label>
+                            <select id="device-status" name="status" required>
+                                <option value="">Pilih Status</option>
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                                <option value="Maintenance">Maintenance</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="power-consumption">Konsumsi Daya (Watt)</label>
+                            <input type="number" id="power-consumption" name="powerConsumption" min="0" step="0.1" required>
+                        </div>
+                    </div>
+                    
+                    <input type="hidden" id="edit-id" name="editId">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                    Batal
+                </button>
+                <button class="btn btn-primary" onclick="saveData()">
+                    <i class="fas fa-save"></i>
+                    Simpan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner"></i>
+            <p>Memproses permintaan...</p>
+        </div>
+    </div>
+
+    <!-- Alert Container -->
+    <div id="alert-container" class="alert-container"></div>
+
+    <!-- JavaScript Files - Order Matters! -->
+    <script>
+        // Fallback CSS loading detection
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                const stylesLoaded = document.styleSheets.length > 0;
+                if (!stylesLoaded) {
+                    document.getElementById('fallback-notice').style.display = 'block';
+                }
+            }, 1000);
+        });
+    </script>
+    
+    <script>
+/**
+* ENFORCED AUTHENTICATION SYSTEM
+* Hard-coded authentication enforcement
+*/
+
+// CRITICAL: Global authentication state
+let AUTH_SYSTEM_INITIALIZED = false;
+let CURRENT_USER = null;
+let SESSION_EXPIRY = null;
+
+// Initialize authentication immediately
+(function initializeAuthSystem() {
+    console.log('AUTH SYSTEM: Initializing enforcement system...');
+    
+    // Clear any existing sessions to force login
+    clearExistingSessions();
+    
+    // Force show login screen immediately
+    forceShowLoginScreen();
+    
+    // Setup authentication system
+    setupAuthenticationSystem();
+    
+    // Prevent any dashboard access until authenticated
+    preventUnauthorizedAccess();
+    
+    AUTH_SYSTEM_INITIALIZED = true;
+    console.log('AUTH SYSTEM: Initialized - Login required');
+})();
+
+function clearExistingSessions() {
+    console.log('AUTH SYSTEM: Clearing existing sessions...');
+    localStorage.removeItem('lighting_app_session');
+    localStorage.removeItem('lighting_session');
+    localStorage.removeItem('user_session');
+    localStorage.removeItem('app_session');
+    sessionStorage.clear();
+    console.log('AUTH SYSTEM: All sessions cleared');
+}
+
+function forceShowLoginScreen() {
+    console.log('AUTH SYSTEM: Forcing login screen...');
+    
+    // Hide dashboard section
+    const dashboardSection = document.getElementById('dashboard-section');
+    if (dashboardSection) {
+        dashboardSection.style.display = 'none';
+        console.log('AUTH SYSTEM: Dashboard section hidden');
+    }
+    
+    // Show login section
+    const loginSection = document.getElementById('login-section');
+    if (loginSection) {
+        loginSection.style.display = 'flex';
+        console.log('AUTH SYSTEM: Login section shown');
+    }
+    
+    // Block any attempts to show dashboard
+    const originalShowDashboard = window.showDashboard;
+    if (typeof originalShowDashboard === 'function') {
+        window.showDashboard = function() {
+            console.warn('AUTH SYSTEM: Dashboard access blocked - Not authenticated');
+            alert('Anda harus login terlebih dahulu!');
+            forceShowLoginScreen();
+        };
+    }
+}
+
+function setupAuthenticationSystem() {
+    console.log('AUTH SYSTEM: Setting up authentication system...');
+    
+    // Create global auth functions
+    window.forceLogin = function() {
+        console.log('AUTH SYSTEM: Forcing login...');
+        forceShowLoginScreen();
+    };
+    
+    window.isAuthenticated = function() {
+        return CURRENT_USER !== null && SESSION_EXPIRY && Date.now() < SESSION_EXPIRY;
+    };
+    
+    window.getCurrentUser = function() {
+        return CURRENT_USER;
+    };
+    
+    window.requireAuth = function() {
+        if (!window.isAuthenticated()) {
+            console.warn('AUTH SYSTEM: Authentication required');
+            alert('Anda harus login terlebih dahulu!');
+            forceShowLoginScreen();
+            return false;
+        }
+        return true;
+    };
+    
+    console.log('AUTH SYSTEM: Authentication functions created');
+}
+
+function preventUnauthorizedAccess() {
+    console.log('AUTH SYSTEM: Setting up access prevention...');
+    
+    // Override any global functions that might show dashboard
+    const originalShowModal = window.showModal;
+    if (typeof originalShowModal === 'function') {
+        window.showModal = function(modalId) {
+            if (!window.requireAuth()) return;
+            originalShowModal(modalId);
+        };
+    }
+    
+    // Add authentication checks to button clicks
+    document.addEventListener('click', function(e) {
+        // Check if clicked button requires authentication
+        if (e.target.tagName === 'BUTTON' && e.target.onclick) {
+            const buttonText = e.target.textContent.toLowerCase();
+            if (buttonText.includes('tambah') || 
+                buttonText.includes('add') || 
+                buttonText.includes('filter') ||
+                buttonText.includes('tambah data')) {
+                
+                if (!window.requireAuth()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+            }
+        }
+    });
+    
+    console.log('AUTH SYSTEM: Access prevention active');
+}
+
+/**
+* Authentication and Session Management - ENFORCED VERSION
+* Hard-coded authentication enforcement
+*/
+
+class AuthManager {
+constructor() {
+this.API_ENDPOINT = 'https://script.google.com/macros/s/AKfycbzqqt_N8SEW8isUMgbWoSgz_g1SBVjaSo_vvuJCWb00UE3NXuw3Ga0A9D838ty3nN8Z/exec';
+this.SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes
+this.sessionCheckInterval = null;
+this.init();
+}
+
+init() {
+console.log('AuthManager: Initializing with enforced authentication...');
+
+// CRITICAL: Force authentication check immediately
+this.checkAuthentication();
+this.setupEventListeners();
+this.startSessionMonitoring();
+console.log('AuthManager: Initialization complete');
+}
+
+// CRITICAL: Enforced authentication check
+checkAuthentication() {
+console.log('AuthManager: Enforcing authentication check...');
+const session = this.getSession();
+
+if (!session || !session.user) {
+console.log('AuthManager: No valid session - forcing login');
+// CRITICAL: Force show login and block dashboard access
+this.forceShowLogin();
+} else {
+console.log('AuthManager: Valid session found, checking expiry...');
+// Check if session is expired
+if (Date.now() > session.expires) {
+console.log('AuthManager: Session expired - forcing login');
+this.clearSession();
+this.forceShowLogin();
+} else {
+console.log('AuthManager: Valid session - allowing dashboard access');
+// Set global authentication state
+CURRENT_USER = session.user;
+SESSION_EXPIRY = session.expires;
+// Show dashboard only if properly authenticated
+this.showDashboard();
+}
+}
+}
+
+forceShowLogin() {
+console.log('AuthManager: Force showing login screen...');
+
+// CORRECTED: Use the actual elements from HTML
+const loginSection = document.getElementById('login-section');
+const dashboardSection = document.getElementById('dashboard-section');
+
+if (loginSection) {
+loginSection.style.display = 'flex';
+console.log('AuthManager: Login section shown');
+} else {
+console.error('AuthManager: Login section not found!');
+}
+
+if (dashboardSection) {
+dashboardSection.style.display = 'none';
+console.log('AuthManager: Dashboard section hidden');
+} else {
+console.error('AuthManager: Dashboard section not found!');
+}
+
+// CRITICAL: Block global authentication
+CURRENT_USER = null;
+SESSION_EXPIRY = null;
+}
+
+showDashboard() {
+console.log('AuthManager: Showing dashboard...');
+
+// Only show dashboard if authenticated
+if (!window.isAuthenticated()) {
+console.warn('AuthManager: Cannot show dashboard - not authenticated');
+this.forceShowLogin();
+return;
+}
+
+const loginSection = document.getElementById('login-section');
+const dashboardSection = document.getElementById('dashboard-section');
+
+if (loginSection) {
+loginSection.style.display = 'none';
+console.log('AuthManager: Login section hidden');
+}
+
+if (dashboardSection) {
+dashboardSection.style.display = 'block';
+console.log('AuthManager: Dashboard section shown');
+}
+}
+
+setupEventListeners() {
+const loginForm = document.getElementById('login-form');
+const logoutBtn = document.querySelector('button[onclick="logout()"]');
+
+if (loginForm) {
+loginForm.addEventListener('submit', (e) => this.handleLogin(e));
+console.log('AuthManager: Login form event listener added');
+} else {
+console.error('AuthManager: Login form not found!');
+}
+
+if (logoutBtn) {
+logoutBtn.addEventListener('click', () => this.handleLogout());
+console.log('AuthManager: Logout button event listener added');
+} else {
+console.warn('AuthManager: Logout button not found');
+}
+}
+
+async handleLogin(event) {
+event.preventDefault();
+console.log('AuthManager: handleLogin called');
+
+const username = document.getElementById('username').value.trim();
+const password = document.getElementById('password').value.trim();
+
+if (!username || !password) {
+this.showAlert('Please enter username and password', 'error');
+return;
+}
+
+try {
+this.showLoading(true);
+
+console.log('AuthManager: Making API call with username:', username);
+
+const response = await this.makeAPICall('POST', {
+action: 'login',
+username: username,
+password: password
+});
+
+console.log('AuthManager: API Response received:', response);
+
+if (response.success === true) {
+console.log('AuthManager: Login successful, setting session');
+this.setSession(response.user);
+this.showAlert('Login successful!', 'success');
+
+// CRITICAL: Set global authentication state
+CURRENT_USER = response.user;
+SESSION_EXPIRY = Date.now() + this.SESSION_TIMEOUT;
+
+// Show dashboard after successful login
+setTimeout(() => {
+this.showDashboard();
+}, 500);
+} else {
+console.error('AuthManager: Login failed:', response.message);
+this.showAlert(response.message || 'Login failed', 'error');
+}
+} catch (error) {
+console.error('AuthManager: Login error:', error);
+this.showAlert('Login failed: ' + error.message} finally {
+this, 'error');
+.showLoading(false);
+}
+}
+
+handleLogout() {
+console.log('AuthManager: handleLogout called');
+
+// CRITICAL: Clear global authentication state
+CURRENT_USER = null;
+SESSION_EXPIRY = null;
+
+this.clearSession();
+this.stopSessionMonitoring();
+this.showAlert('Logged out successfully', 'success');
+this.forceShowLogin();
+}
+
+async makeAPICall(method, data) {
+const options = {
+method: method,
+headers: {
+'Content-Type': 'text/plain',
+},
+};
+
+if (data) {
+options.body = JSON.stringify(data);
+}
+
+try {
+console.log('AuthManager: Making API call to:', this.API_ENDPOINT);
+console.log('AuthManager: Request options:', options);
+
+const response = await fetch(this.API_ENDPOINT, options);
+
+console.log('AuthManager: Response status:', response.status);
+console.log('AuthManager: Response ok:', response.ok);
+
+if (!response.ok) {
+throw new Error(`HTTP error! status: ${response.status}`);
+}
+
+const result = await response.json();
+console.log('AuthManager: Parsed response:', result);
+return result;
+} catch (error) {
+console.error('AuthManager: API call error:', error);
+throw new Error('Failed to connect to server: ' + error.message);
+}
+}
+
+setSession(userData) {
+console.log('AuthManager: Setting session with user data:', userData);
+const sessionData = {
+user: userData,
+timestamp: Date.now(),
+expires: Date.now() + this.SESSION_TIMEOUT
+};
+
+localStorage.setItem('lighting_app_session', JSON.stringify(sessionData));
+console.log('AuthManager: Session saved to localStorage');
+}
+
+getSession() {
+try {
+const sessionData = localStorage.getItem('lighting_app_session');
+if (!sessionData) return null;
+
+const session = JSON.parse(sessionData);
+
+// Check if session has expired
+if (Date.now() > session.expires) {
+this.clearSession();
+return null;
+}
+
+return session;
+} catch (error) {
+console.error('AuthManager: Session parse error:', error);
+this.clearSession();
+return null;
+}
+}
+
+clearSession() {
+localStorage.removeItem('lighting_app_session');
+}
+
+isUserAuthenticated() {
+return window.isAuthenticated();
+}
+
+getCurrentUser() {
+return CURRENT_USER;
+}
+
+startSessionMonitoring() {
+console.log('AuthManager: Starting session monitoring');
+// Check session every minute
+this.sessionCheckInterval = setInterval(() => {
+this.validateSession();
+}, 60000);
+}
+
+stopSessionMonitoring() {
+if (this.sessionCheckInterval) {
+clearInterval(this.sessionCheckInterval);
+this.sessionCheckInterval = null;
+}
+}
+
+validateSession() {
+if (!this.isUserAuthenticated()) {
+this.showAlert('Session expired. Please login again.', 'warning');
+this.handleLogout();
+return false;
+}
+
+// Extend session if user is active
+if (CURRENT_USER && SESSION_EXPIRY) {
+SESSION_EXPIRY = Date.now() + this.SESSION_TIMEOUT;
+}
+
+return true;
+}
+
+showLoading(show) {
+const loadingOverlay = document.getElementById('loading-overlay');
+if (loadingOverlay) {
+loadingOverlay.style.display = show ? 'flex' : 'none';
+console.log('AuthManager: Loading overlay:', show ? 'shown' : 'hidden');
+} else {
+console.error('AuthManager: loading-overlay element not found!');
+}
+}
+
+showAlert(message, type = 'info') {
+console.log('AuthManager: Showing alert:', message, type);
+const alertContainer = document.getElementById('alert-container');
+if (!alertContainer) {
+console.error('AuthManager: alert-container element not found!');
+return;
+}
+
+const alert = document.createElement('div');
+alert.className = `alert alert-${type}`;
+alert.innerHTML = `
+<span>${message}</span>
+<button class="alert-close" onclick="this.parentElement.remove()">&times;</button>
+`;
+
+alertContainer.appendChild(alert);
+
+// Auto remove after 5 seconds
+setTimeout(() => {
+if (alert.parentElement) {
+alert.remove();
+}
+}, 5000);
+}
+}
+
+// FIXED: Add global functions for button onclick handlers
+function closeModal(modalId) {
+console.log('Global closeModal called for:', modalId);
+
+if (!window.requireAuth()) return;
+
+const modal = document.getElementById(modalId);
+if (modal) {
+modal.style.display = 'none';
+console.log('Modal closed successfully:', modalId);
+} else {
+console.error('Modal not found:', modalId);
+}
+}
+
+function showAddModal() {
+console.log('Global showAddModal called');
+
+if (!window.requireAuth()) return;
+
+if (window.appManager) {
+window.appManager.showAddDataModal();
+} else {
+console.error('AppManager not found for showAddModal');
+}
+}
+
+function applyFilters() {
+console.log('Global applyFilters called');
+
+if (!window.requireAuth()) return;
+
+if (window.appManager) {
+window.appManager.applyFilters();
+} else {
+console.error('AppManager not found for applyFilters');
+}
+}
+
+function clearFilters() {
+console.log('Global clearFilters called');
+
+if (!window.requireAuth()) return;
+
+if (window.appManager) {
+window.appManager.clearFilters();
+} else {
+console.error('AppManager not found for clearFilters');
+}
+}
+
+function saveData() {
+console.log('Global saveData called');
+
+if (!window.requireAuth()) return;
+
+if (window.appManager) {
+const form = document.getElementById('data-form');
+if (form) {
+window.appManager.handleDataSubmit({ preventDefault: () => {} });
+} else {
+console.error('Data form not found for saveData');
+}
+} else {
+console.error('AppManager not found for saveData');
+}
+}
+
+function logout() {
+console.log('Global logout called');
+
+if (window.authManager) {
+window.authManager.handleLogout();
+} else {
+console.error('AuthManager not found for logout');
+}
+}
+
+function previousPage() {
+console.log('Global previousPage called');
+
+if (!window.requireAuth()) return;
+
+if (window.appManager) {
+const newPage = window.appManager.currentPage - 1;
+window.appManager.goToPage(newPage);
+} else {
+console.error('AppManager not found for previousPage');
+}
+}
+
+function nextPage() {
+console.log('Global nextPage called');
+
+if (!window.requireAuth()) return;
+
+if (window.appManager) {
+const newPage = window.appManager.currentPage + 1;
+window.appManager.goToPage(newPage);
+} else {
+console.error('AppManager not found for nextPage');
+}
+}
+
+// Make all functions globally available
+window.closeModal = closeModal;
+window.showAddModal = showAddModal;
+window.applyFilters = applyFilters;
+window.clearFilters = clearFilters;
+window.saveData = saveData;
+window.logout = logout;
+window.previousPage = previousPage;
+window.nextPage = nextPage;
+
+// Initialize auth manager when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+console.log('AuthManager: DOM loaded, initializing AuthManager');
+window.authManager = new AuthManager();
+console.log('AuthManager: AuthManager instance created:', window.authManager);
+});
+    </script>
+    
+    <script>
+/**
+* Main Application Logic - AUTH ENFORCED VERSION
+* Requires authentication for all operations
+*/
+
+class AppManager {
+constructor() {
+this.API_ENDPOINT = 'https://script.google.com/macros/s/AKfycbzqqt_N8SEW8isUMgbWoSgz_g1SBVjaSo_vvuJCWb00UE3NXuw3Ga0A9D838ty3nN8Z/exec';
+this.currentUser = null;
+this.currentData = [];
+this.currentFilters = {};
+this.currentPage = 1;
+this.itemsPerPage = 10;
+this.init();
+}
+
+init() {
+console.log('AppManager: Initializing...');
+
+// CRITICAL: Check authentication before initializing
+if (!window.requireAuth()) {
+console.warn('AppManager: Authentication required - stopping initialization');
+return;
+}
+
+this.setupEventListeners();
+console.log('AppManager: Initialization complete');
+}
+
+setupEventListeners() {
+console.log('AppManager: Setting up event listeners...');
+
+// CORRECTED: Use proper selectors that match HTML structure
+const dataForm = document.getElementById('data-form');
+
+// Add data form submit handler
+if (dataForm) {
+dataForm.addEventListener('submit', (e) => this.handleDataSubmit(e));
+console.log('AppManager: Data form event listener added');
+} else {
+console.warn('AppManager: Data form not found');
+}
+
+// Setup filter event listeners
+const filterElements = ['filter-status', 'filter-location', 'filter-date-from', 'filter-date-to'];
+filterElements.forEach(id => {
+const element = document.getElementById(id);
+if (element) {
+element.addEventListener('change', () => this.applyFilters());
+}
+console.log(`AppManager: Filter element ${id} setup`);
+});
+
+// Setup modal close handlers using event delegation
+document.addEventListener('click', (e) => {
+if (e.target.classList.contains('close') || e.target.closest('.close')) {
+const modal = e.target.closest('.modal');
+if (modal) {
+this.closeModal(modal.id);
+}
+}
+});
+
+console.log('AppManager: Event listeners setup complete');
+}
+
+initializeWithUser(user) {
+console.log('AppManager: Initializing with user:', user);
+
+// CRITICAL: Verify authentication
+if (!window.requireAuth()) {
+console.warn('AppManager: Authentication required for initialization');
+return;
+}
+
+this.currentUser = user;
+this.updateUserInterface();
+this.loadDashboard();
+}
+
+updateUserInterface() {
+console.log('AppManager: Updating user interface...');
+const userName = document.getElementById('user-name');
+
+if (userName && this.currentUser) {
+userName.textContent = this.currentUser.full_name || this.currentUser.username || 'User';
+console.log('AppManager: User name updated:', userName.textContent);
+}
+}
+
+async loadDashboard() {
+// CRITICAL: Check authentication before loading dashboard
+if (!window.requireAuth()) {
+console.warn('AppManager: Authentication required for dashboard');
+return;
+}
+
+try {
+this.showLoading(true);
+console.log('AppManager: Loading dashboard...');
+
+const response = await this.makeAPICall('POST', {
+action: 'getData',
+filters: this.currentFilters
+});
+
+console.log('AppManager: Dashboard response:', response);
+
+// FIXED: Check response structure properly
+if (response.success === true) {
+this.currentData = response.data || [];
+console.log('AppManager: Data loaded successfully, count:', this.currentData.length);
+this.updateDashboard();
+this.updateDataTable();
+this.populateFilters();
+this.updatePagination();
+console.log('AppManager: Dashboard updated successfully');
+} else {
+console.error('AppManager: Failed to load data:', response.message);
+if (window.authManager) {
+window.authManager.showAlert(response.message || 'Failed to load data', 'error');
+}
+}
+} catch (error) {
+console.error('AppManager: Dashboard load error:', error);
+if (window.authManager) {
+window.authManager.showAlert('Failed to load dashboard: ' + error.message, 'error');
+}
+} finally {
+this.showLoading(false);
+}
+}
+
+updateDashboard() {
+console.log('AppManager: Updating dashboard stats...');
+
+// CORRECTED: Use elements that actually exist in HTML
+const totalDevices = document.getElementById('total-devices');
+const activeDevices = document.getElementById('active-devices');
+const warningDevices = document.getElementById('warning-devices');
+const averageUsage = document.getElementById('average-usage');
+
+const stats = this.calculateStats();
+
+if (totalDevices) totalDevices.textContent = stats.totalDevices;
+if (activeDevices) activeDevices.textContent = stats.activeDevices;
+if (warningDevices) warningDevices.textContent = stats.warningDevices;
+if (averageUsage) averageUsage.textContent = stats.averageUsage + '%';
+
+console.log('AppManager: Dashboard stats updated:', stats);
+}
+
+calculateStats() {
+const data = this.currentData;
+
+// Calculate stats based on available data
+const totalDevices = data.length;
+const activeDevices = data.filter(item => 
+item.status && item.status.toLowerCase() === 'active'
+).length;
+const warningDevices = data.filter(item => 
+item.status && (item.status.toLowerCase() === 'maintenance' || item.status.toLowerCase() === 'inactive')
+).length;
+
+// Calculate average usage (mock calculation)
+const averageUsage = totalDevices > 0 ? Math.round((activeDevices / totalDevices) * 100) : 0;
+
+return {
+totalDevices,
+activeDevices,
+warningDevices,
+averageUsage
+};
+}
+
+updateDataTable() {
+console.log('AppManager: Updating data table...');
+const tbody = document.querySelector('#data-table tbody');
+if (!tbody) {
+console.error('AppManager: Data table body not found');
+return;
+}
+
+tbody.innerHTML = '';
+
+if (this.currentData.length === 0) {
+console.log('AppManager: No data to display');
+const emptyRow = document.createElement('tr');
+emptyRow.innerHTML = `
+<td colspan="7" style="text-align: center; padding: 2rem; color: #6b7280;">
+<i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i>
+Belum ada data. Klik "Tambah Data Baru" untuk mulai.
+</td>
+`;
+tbody.appendChild(emptyRow);
+return;
+}
+
+// Get paginated data
+const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+const endIndex = startIndex + this.itemsPerPage;
+const paginatedData = this.currentData.slice(startIndex, endIndex);
+
+console.log(`AppManager: Showing page ${this.currentPage}, items ${startIndex}-${endIndex} of ${this.currentData.length}`);
+
+paginatedData.forEach(item => {
+const row = document.createElement('tr');
+row.innerHTML = `
+<td>${this.escapeHtml(item.id || '')}</td>
+<td>${this.escapeHtml(item.device_name || item.nama_perangkat || '')}</td>
+<td>${this.escapeHtml(item.location || item.lokasi || '')}</td>
+<td><span class="status-badge status-${(item.status || '').toLowerCase()}">${this.escapeHtml(item.status || '')}</span></td>
+<td>${item.power_consumption || item.konsumsi_daya || 0} W</td>
+<td>${this.formatDate(item.last_updated || item.terakhir_diperbarui)}</td>
+<td class="actions">
+<button class="btn btn-sm btn-secondary" onclick="window.appManager.editData('${item.id}')" title="Edit">
+<i class="fas fa-edit"></i>
+</button>
+<button class="btn btn-sm btn-danger" onclick="window.appManager.deleteData('${item.id}')" title="Delete">
+<i class="fas fa-trash"></i>
+</button>
+</td>
+`;
+tbody.appendChild(row);
+});
+
+console.log('AppManager: Data table updated with', paginatedData.length, 'rows for page', this.currentPage);
+}
+
+updatePagination() {
+console.log('AppManager: Updating pagination...');
+
+const totalPages = Math.ceil(this.currentData.length / this.itemsPerPage);
+const currentPage = this.currentPage;
+
+// Update pagination info elements
+const pageStart = document.getElementById('page-start');
+const pageEnd = document.getElementById('page-end');
+const totalRecords = document.getElementById('total-records');
+const currentPageSpan = document.getElementById('current-page');
+const totalPagesSpan = document.getElementById('total-pages');
+
+if (pageStart) pageStart.textContent = Math.min((currentPage - 1) * this.itemsPerPage + 1, this.currentData.length);
+if (pageEnd) pageEnd.textContent = Math.min(currentPage * this.itemsPerPage, this.currentData.length);
+if (totalRecords) totalRecords.textContent = this.currentData.length;
+if (currentPageSpan) currentPageSpan.textContent = currentPage;
+if (totalPagesSpan) totalPagesSpan.textContent = totalPages;
+
+console.log(`AppManager: Pagination updated - Page ${currentPage} of ${totalPages}`);
+}
+
+goToPage(page) {
+const totalPages = Math.ceil(this.currentData.length / this.itemsPerPage);
+if (page >= 1 && page <= totalPages) {
+this.currentPage = page;
+this.updateDataTable();
+this.updatePagination();
+console.log('AppManager: Navigated to page', page);
+}
+}
+
+populateFilters() {
+console.log('AppManager: Populating filters...');
+
+// Populate status filter
+const statusFilter = document.getElementById('filter-status');
+if (statusFilter) {
+const statuses = [...new Set(this.currentData.map(item => item.status).filter(Boolean))];
+statusFilter.innerHTML = '<option value="">Semua Status</option>';
+statuses.forEach(status => {
+const option = document.createElement('option');
+option.value = status;
+option.textContent = status;
+statusFilter.appendChild(option);
+});
+}
+
+// Populate location filter
+const locationFilter = document.getElementById('filter-location');
+if (locationFilter) {
+const locations = [...new Set(this.currentData.map(item => item.location || item.lokasi).filter(Boolean))];
+locationFilter.innerHTML = '<option value="">Semua Lokasi</option>';
+locations.forEach(location => {
+const option = document.createElement('option');
+option.value = location;
+option.textContent = location;
+locationFilter.appendChild(option);
+});
+}
+}
+
+applyFilters() {
+console.log('AppManager: Applying filters...');
+
+// CRITICAL: Check authentication
+if (!window.requireAuth()) return;
+
+this.currentFilters = {
+status: document.getElementById('filter-status').value,
+location: document.getElementById('filter-location').value,
+dateFrom: document.getElementById('filter-date-from').value,
+dateTo: document.getElementById('filter-date-to').value
+};
+
+console.log('AppManager: Current filters:', this.currentFilters);
+
+// Reset to first page when filters change
+this.currentPage = 1;
+this.loadDashboard();
+}
+
+clearFilters() {
+console.log('AppManager: Clearing filters...');
+
+// CRITICAL: Check authentication
+if (!window.requireAuth()) return;
+
+// Clear all filter inputs
+const filters = ['filter-status', 'filter-location', 'filter-date-from', 'filter-date-to'];
+filters.forEach(filterId => {
+const element = document.getElementById(filterId);
+if (element) {
+element.value = '';
+}
+});
+
+this.currentFilters = {};
+this.currentPage = 1;
+this.loadDashboard();
+}
+
+showAddDataModal() {
+console.log('AppManager: Showing add data modal');
+
+// CRITICAL: Check authentication
+if (!window.requireAuth()) return;
+
+document.getElementById('modal-title').textContent = 'Tambah Data Baru';
+document.getElementById('data-form').reset();
+document.getElementById('edit-id').value = '';
+this.showModal('data-modal');
+}
+
+editData(id) {
+console.log('AppManager: Editing data with ID:', id);
+
+// CRITICAL: Check authentication
+if (!window.requireAuth()) return;
+
+const item = this.currentData.find(data => data.id == id);
+if (!item) {
+console.error('AppManager: Item not found for edit:', id);
+if (window.authManager) {
+window.authManager.showAlert('Data tidak ditemukan', 'error');
+}
+return;
+}
+
+console.log('AppManager: Editing item:', item);
+document.getElementById('modal-title').textContent = 'Edit Data';
+document.getElementById('edit-id').value = item.id;
+
+// Populate form fields - CORRECTED to match HTML structure
+document.getElementById('device-name').value = item.device_name || item.nama_perangkat || '';
+document.getElementById('device-location').value = item.location || item.lokasi || '';
+document.getElementById('device-status').value = item.status || '';
+document.getElementById('power-consumption').value = item.power_consumption || item.konsumsi_daya || '';
+
+this.showModal('data-modal');
+}
+
+async deleteData(id) {
+if (!confirm('Apakah Anda yakin ingin menghapus data ini?')) {
+return;
+}
+
+// CRITICAL: Check authentication
+if (!window.requireAuth()) return;
+
+try {
+this.showLoading(true);
+console.log('AppManager: Deleting data with ID:', id);
+
+const response = await this.makeAPICall('POST', {
+action: 'deleteData',
+record_id: id
+});
+
+console.log('AppManager: Delete response:', response);
+
+if (response.success === true) {
+if (window.authManager) {
+window.authManager.showAlert('Data berhasil dihapus', 'success');
+}
+this.loadDashboard();
+} else {
+if (window.authManager) {
+window.authManager.showAlert(response.message || 'Gagal menghapus data', 'error');
+}
+}
+} catch (error) {
+console.error('AppManager: Delete error:', error);
+if (window.authManager) {
+window.authManager.showAlert('Gagal menghapus data: ' + error.message, 'error');
+}
+} finally {
+this.showLoading(false);
+}
+}
+
+async handleDataSubmit(event) {
+if (event && event.preventDefault) {
+event.preventDefault();
+}
+
+// CRITICAL: Check authentication
+if (!window.requireAuth()) return;
+
+const formData = new FormData(document.getElementById('data-form'));
+const data = Object.fromEntries(formData.entries());
+
+console.log('AppManager: Form data submitted:', data);
+
+// Validate required fields
+const requiredFields = ['deviceName', 'location', 'status', 'powerConsumption'];
+for (let field of requiredFields) {
+if (!data[field] || data[field].trim() === '') {
+if (window.authManager) {
+window.authManager.showAlert(`Field '${field}' wajib diisi`, 'error');
+}
+return;
+}
+}
+
+// FIXED: Always use correct action names
+const action = data.editId ? 'updateData' : 'addData';
+if (data.editId) {
+delete data.editId;
+}
+
+try {
+this.showLoading(true);
+console.log('AppManager: Submitting data with action:', action);
+
+const response = await this.makeAPICall('POST', {
+action: action,
+data: data
+});
+
+console.log('AppManager: Submit response:', response);
+
+if (response.success === true) {
+const message = data.editId ? 'Data berhasil diperbarui' : 'Data berhasil ditambahkan';
+if (window.authManager) {
+window.authManager.showAlert(message, 'success');
+}
+this.closeModal('data-modal');
+this.loadDashboard();
+} else {
+if (window.authManager) {
+window.authManager.showAlert(response.message || 'Gagal menyimpan data', 'error');
+}
+}
+} catch (error) {
+console.error('AppManager: Save error:', error);
+if (window.authManager) {
+window.authManager.showAlert('Gagal menyimpan data: ' + error.message, 'error');
+}
+} finally {
+this.showLoading(false);
+}
+}
+
+async makeAPICall(method, data) {
+const options = {
+method: method,
+headers: {
+'Content-Type': 'text/plain',
+},
+};
+
+if (data) {
+options.body = JSON.stringify(data);
+}
+
+try {
+console.log('AppManager: Making API call to:', this.API_ENDPOINT);
+console.log('AppManager: Request data:', data);
+
+const response = await fetch(this.API_ENDPOINT, options);
+
+console.log('AppManager: Response status:', response.status);
+
+if (!response.ok) {
+throw new Error(`HTTP error! status: ${response.status}`);
+}
+
+const result = await response.json();
+console.log('AppManager: API response:', result);
+return result;
+} catch (error) {
+console.error('AppManager: API call error:', error);
+throw new Error('Failed to connect to server: ' + error.message);
+}
+}
+
+showModal(modalId) {
+const modal = document.getElementById(modalId);
+if (modal) {
+modal.style.display = 'flex';
+console.log('AppManager: Modal shown:', modalId);
+} else {
+console.error('AppManager: Modal not found:', modalId);
+}
+}
+
+closeModal(modalId) {
+const modal = document.getElementById(modalId);
+if (modal) {
+modal.style.display = 'none';
+console.log('AppManager: Modal closed:', modalId);
+} else {
+console.error('AppManager: Modal not found for closing:', modalId);
+}
+}
+
+showLoading(show) {
+const loadingOverlay = document.getElementById('loading-overlay');
+if (loadingOverlay) {
+loadingOverlay.style.display = show ? 'flex' : 'none';
+console.log('AppManager: Loading overlay:', show ? 'shown' : 'hidden');
+} else {
+console.error('AppManager: Loading overlay not found');
+}
+}
+
+formatDate(dateString) {
+if (!dateString) return '';
+try {
+const date = new Date(dateString);
+return date.toLocaleDateString('id-ID');
+} catch (error) {
+return dateString;
+}
+}
+
+escapeHtml(text) {
+if (!text) return '';
+const map = {
+'&': '&amp;',
+'<': '&lt;',
+'>': '&gt;',
+'"': '&quot;',
+"'": '&#039;'
+};
+return text.replace(/[&<>"']/g, (m) => map[m]);
+}
+}
+
+// Initialize app manager when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+console.log('AppManager: DOM loaded, initializing AppManager');
+window.appManager = new AppManager();
+console.log('AppManager: AppManager instance created:', window.appManager);
+});
+    </script>
+</body>
+</html>
 
