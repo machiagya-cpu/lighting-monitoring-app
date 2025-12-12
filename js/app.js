@@ -4,7 +4,7 @@
 
 class AppManager {
 constructor() {
-this.API_ENDPOINT = 'https://script.google.com/macros/s/AKfycbx_oUdtIKJSA639p0pHq4oqIbaDyiBf_kajHpK-zWgRXvojQxj73jHPethx0yRDEZvr/exec';
+this.API_ENDPOINT = 'https://script.google.com/macros/s/AKfycbzqqt_N8SEW8isUMgbWoSgz_g1SBVjaSo_vvuJCWb00UE3NXuw3Ga0A9D838ty3nN8Z/exec';
 this.currentUser = null;
 this.currentData = [];
 this.currentFilters = {};
